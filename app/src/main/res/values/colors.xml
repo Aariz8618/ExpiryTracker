@@ -1,5 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Added palette for the app -->
+    <color name="green_primary">#2E7D32</color>
+    <color name="green_primary_dark">#1B5E20</color>
+    <color name="green_primary_light">#A5D6A7</color>
+    <color name="green_chip_bg">#E6F4EA</color>
+    <color name="yellow_chip_bg">#FFF4CC</color>
+    <color name="red_chip_bg">#FFE0E0</color>
+
+    <color name="gray_100">#F5F5F5</color>
+    <color name="gray_300">#E0E0E0</color>
+    <color name="gray_500">#9E9E9E</color>
+
+    <!-- colors.xml -->
+    <color name="gray_50">#FAFAFA</color>
+    <color name="gray_200">#E5E7EB</color>
+    <color name="gray_600">#4B5563</color>
+    <color name="gray_700">#374151</color>
+    <color name="gray_800">#1F2937</color>
+    <color name="green_50">#F0FDF4</color>
+    <color name="green_200">#BBF7D0</color>
+    <color name="orange_500">#F97316</color>
+    <color name="red_500">#EF4444</color>
+
+        <!-- Primary Colors -->
+        <color name="green_600">#43A047</color>
+
+        <!-- Orange Colors -->
+        <color name="orange_400">#FF9800</color>
+        <color name="orange_600">#F57C00</color>
 </resources>
