@@ -1,6 +1,7 @@
 package com.aariz.expirytracker
 
 import android.app.DatePickerDialog
+import android.content.Intent
 import android.os.Bundle
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -9,8 +10,10 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
+import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 class AddItemActivity : AppCompatActivity() {
     private var quantity = 1
@@ -95,11 +98,10 @@ class AddItemActivity : AppCompatActivity() {
         val currentDate = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(Date())
         textPurchaseDate.text = currentDate
         selectedPurchaseDate = currentDate
+        textPurchaseDate.setTextColor(getColor(R.color.gray_800))
     }
 
     private fun showCategoryDialog() {
-        // For now, showing a simple category selection
-        // You can replace this with a proper dialog or spinner
         val categories = arrayOf("Dairy", "Meat", "Vegetables", "Fruits", "Bakery", "Frozen", "Pantry", "Other")
 
         val builder = androidx.appcompat.app.AlertDialog.Builder(this)
@@ -114,6 +116,8 @@ class AddItemActivity : AppCompatActivity() {
 
     private fun showDatePicker(isPurchaseDate: Boolean) {
         val calendar = Calendar.getInstance()
+
+        // Set minimum date to today for expiry date
         val datePickerDialog = DatePickerDialog(
             this,
             { _, year, month, dayOfMonth ->
@@ -121,6 +125,7 @@ class AddItemActivity : AppCompatActivity() {
                 if (isPurchaseDate) {
                     selectedPurchaseDate = selectedDate
                     textPurchaseDate.text = selectedDate
+                    textPurchaseDate.setTextColor(getColor(R.color.gray_800))
                 } else {
                     selectedExpiryDate = selectedDate
                     textExpiryDate.text = selectedDate
@@ -131,6 +136,12 @@ class AddItemActivity : AppCompatActivity() {
             calendar.get(Calendar.MONTH),
             calendar.get(Calendar.DAY_OF_MONTH)
         )
+
+        // For expiry date, set minimum date to today
+        if (!isPurchaseDate) {
+            datePickerDialog.datePicker.minDate = System.currentTimeMillis()
+        }
+
         datePickerDialog.show()
     }
 
@@ -154,19 +165,94 @@ class AddItemActivity : AppCompatActivity() {
             return
         }
 
-        // TODO: Save item to database or pass back to previous activity
-        // For now, just show success message
-        Toast.makeText(this, "Item '$itemName' saved successfully!", Toast.LENGTH_SHORT).show()
+        // Calculate days left and status
+        val daysLeft = calculateDaysLeft(selectedExpiryDate)
+        val status = determineStatus(daysLeft)
 
-        // Return to previous screen
+        // Create result intent with item data
+        val resultIntent = Intent().apply {
+            putExtra("id", generateId())
+            putExtra("name", itemName)
+            putExtra("category", selectedCategory)
+            putExtra("expiryDate", formatDisplayDate(selectedExpiryDate))
+            putExtra("purchaseDate", formatDisplayDate(selectedPurchaseDate))
+            putExtra("quantity", quantity)
+            putExtra("status", status)
+            putExtra("daysLeft", daysLeft)
+        }
+
+        // Set result and finish
+        setResult(RESULT_OK, resultIntent)
+
+        Toast.makeText(this, "Item '$itemName' saved successfully!", Toast.LENGTH_SHORT).show()
         finish()
+    }
+
+    private fun calculateDaysLeft(expiryDate: String): Int {
+        return try {
+            val sdf = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
+            val expiry = sdf.parse(expiryDate)
+            val today = Date()
+
+            // Reset time to start of day for accurate calculation
+            val calToday = Calendar.getInstance().apply {
+                time = today
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+
+            val calExpiry = Calendar.getInstance().apply {
+                time = expiry!!
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+
+            if (expiry != null) {
+                val diffInMillies = calExpiry.timeInMillis - calToday.timeInMillis
+                TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS).toInt()
+            } else {
+                0
+            }
+        } catch (e: ParseException) {
+            0
+        }
+    }
+
+    private fun determineStatus(daysLeft: Int): String {
+        return when {
+            daysLeft < 0 -> "expired"
+            daysLeft <= 3 -> "expiring"
+            else -> "fresh"
+        }
+    }
+
+    private fun formatDisplayDate(date: String): String {
+        return try {
+            val inputFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
+            val outputFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+            val parsedDate = inputFormat.parse(date)
+            if (parsedDate != null) {
+                outputFormat.format(parsedDate)
+            } else {
+                date
+            }
+        } catch (e: ParseException) {
+            date
+        }
+    }
+
+    private fun generateId(): Int {
+        // Generate a simple ID based on current timestamp
+        return (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
     }
 
     private fun setupBackPressedHandler() {
         val callback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                // You can add confirmation dialog here if needed
-                // For example, if user has unsaved changes
                 val hasUnsavedChanges = hasUnsavedChanges()
 
                 if (hasUnsavedChanges) {
@@ -180,11 +266,10 @@ class AddItemActivity : AppCompatActivity() {
     }
 
     private fun hasUnsavedChanges(): Boolean {
-        // Check if user has entered any data
         val itemName = inputName.text.toString().trim()
         return itemName.isNotEmpty() ||
                 selectedCategory.isNotEmpty() ||
-                selectedExpiryDate.isNotEmpty() ||
+                (selectedExpiryDate.isNotEmpty() && selectedExpiryDate != "mm/dd/yyyy") ||
                 quantity != 1
     }
 

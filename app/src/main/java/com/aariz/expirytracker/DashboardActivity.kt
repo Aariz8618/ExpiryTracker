@@ -9,24 +9,35 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class DashboardActivity : AppCompatActivity() {
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var adapter: GroceryAdapter
+    private lateinit var emptyState: LinearLayout
+    private val groceryItems = mutableListOf<GroceryItem>()
+
+    companion object {
+        const val ADD_ITEM_REQUEST_CODE = 1001
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Fixed: Changed from screen_dashboard to activity_dashboard to match your XML filename
         setContentView(R.layout.screen_dashboard)
 
-        // Recycler setup
-        val recycler = findViewById<RecyclerView>(R.id.recycler_items)
-        recycler.layoutManager = LinearLayoutManager(this)
+        initViews()
+        setupRecyclerView()
+        setupNavigation()
+        setupFab()
+        updateEmptyState()
+    }
 
-        val items = listOf(
-            GroceryItem(1, "Fresh Apples", "Fruits", "Sep 25, 2025", "Sep 18, 2025", 6, "fresh", 5),
-            GroceryItem(2, "Organic Milk", "Dairy", "Sep 22, 2025", "Sep 18, 2025", 1, "expiring", 2),
-            GroceryItem(3, "Whole Wheat Bread", "Bakery", "Sep 19, 2025", "Sep 17, 2025", 1, "expired", -1),
-            GroceryItem(4, "Salmon Fillet", "Seafood", "Sep 21, 2025", "Sep 18, 2025", 2, "expiring", 1),
-            GroceryItem(5, "Baby Carrots", "Vegetables", "Sep 28, 2025", "Sep 18, 2025", 3, "fresh", 8)
-        )
+    private fun initViews() {
+        recyclerView = findViewById(R.id.recycler_items)
+        emptyState = findViewById(R.id.empty_state)
+    }
 
-        recycler.adapter = GroceryAdapter(items) { item ->
+    private fun setupRecyclerView() {
+        recyclerView.layoutManager = LinearLayoutManager(this)
+
+        adapter = GroceryAdapter(groceryItems) { item ->
             val intent = Intent(this, ItemDetailActivity::class.java).apply {
                 putExtra("id", item.id)
                 putExtra("name", item.name)
@@ -40,8 +51,10 @@ class DashboardActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        // Fixed: Changed from BottomNavigationView to individual LinearLayout tabs
-        // Set up individual tab click listeners
+        recyclerView.adapter = adapter
+    }
+
+    private fun setupNavigation() {
         val tabHome = findViewById<LinearLayout>(R.id.tab_home)
         val tabStats = findViewById<LinearLayout>(R.id.tab_stats)
         val tabRecipes = findViewById<LinearLayout>(R.id.tab_recipes)
@@ -52,21 +65,64 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         tabStats.setOnClickListener {
-            startActivity(Intent(this, StatisticsActivity::class.java))
+            // startActivity(Intent(this, StatisticsActivity::class.java))
         }
 
         tabRecipes.setOnClickListener {
-            startActivity(Intent(this, RecipesActivity::class.java))
+            // startActivity(Intent(this, RecipesActivity::class.java))
         }
 
         tabSettings.setOnClickListener {
-            startActivity(Intent(this, SettingsActivity::class.java))
+            // startActivity(Intent(this, SettingsActivity::class.java))
         }
+    }
 
-        // Fixed: Changed from ExtendedFloatingActionButton to FloatingActionButton
+    private fun setupFab() {
         val fab = findViewById<FloatingActionButton>(R.id.fab_add_item)
         fab.setOnClickListener {
-            startActivity(Intent(this, AddItemActivity::class.java))
+            val intent = Intent(this, AddItemActivity::class.java)
+            startActivityForResult(intent, ADD_ITEM_REQUEST_CODE)
+        }
+    }
+
+    @Deprecated("This method has been deprecated in favor of using the Activity Result API")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == ADD_ITEM_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
+            // Get the new item data from the intent
+            val newItem = GroceryItem(
+                id = data.getIntExtra("id", 0),
+                name = data.getStringExtra("name") ?: "",
+                category = data.getStringExtra("category") ?: "",
+                expiryDate = data.getStringExtra("expiryDate") ?: "",
+                purchaseDate = data.getStringExtra("purchaseDate") ?: "",
+                quantity = data.getIntExtra("quantity", 1),
+                status = data.getStringExtra("status") ?: "fresh",
+                daysLeft = data.getIntExtra("daysLeft", 0)
+            )
+
+            // Add the new item to the list
+            groceryItems.add(0, newItem) // Add at the beginning
+
+            // Notify adapter about the new item
+            adapter.notifyItemInserted(0)
+
+            // Update empty state
+            updateEmptyState()
+
+            // Scroll to the top to show newly added item
+            recyclerView.smoothScrollToPosition(0)
+        }
+    }
+
+    private fun updateEmptyState() {
+        if (groceryItems.isEmpty()) {
+            recyclerView.visibility = android.view.View.GONE
+            emptyState.visibility = android.view.View.VISIBLE
+        } else {
+            recyclerView.visibility = android.view.View.VISIBLE
+            emptyState.visibility = android.view.View.GONE
         }
     }
 }

@@ -7,6 +7,6 @@ data class GroceryItem(
     val expiryDate: String,
     val purchaseDate: String,
     val quantity: Int,
-    val status: String,
+    val status: String, // "fresh", "expiring", "expired"
     val daysLeft: Int
 )
