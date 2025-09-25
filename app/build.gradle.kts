@@ -53,4 +53,6 @@ dependencies {
     // Firebase Services
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-functions:...") // removed placeholder; add a real version if you use Functions
+
 }

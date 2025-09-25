@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "747967208472",
+    "project_id": "freshtrack-d3269",
+    "storage_bucket": "freshtrack-d3269.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:747967208472:android:99a657c20f2b39ad79376d",
+        "android_client_info": {
+          "package_name": "com.aariz.expirytracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBfVusyf_bQiYQO9OXxt1Wokf8TUD7JyQU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

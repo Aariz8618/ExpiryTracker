@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- screen_signup.xml -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -64,6 +63,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 app:startIconDrawable="@drawable/ic_lock"
+                app:endIconMode="password_toggle"
                 app:boxBackgroundMode="outline"
                 app:boxCornerRadiusTopStart="12dp"
                 app:boxCornerRadiusTopEnd="12dp"
@@ -87,6 +87,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
                 app:startIconDrawable="@drawable/ic_lock"
+                app:endIconMode="password_toggle"
                 app:boxBackgroundMode="outline"
                 app:boxCornerRadiusTopStart="12dp"
                 app:boxCornerRadiusTopEnd="12dp"
@@ -104,12 +105,12 @@
                     android:padding="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Sign Up Button -->
+            <!-- Create Account Button -->
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/button_signup"
+                android:id="@+id/button_create_account"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:text="Sign Up"
+                android:text="Create Account"
                 android:textColor="@color/white"
                 android:textSize="16sp"
                 android:textStyle="bold"
