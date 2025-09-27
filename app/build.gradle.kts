@@ -53,6 +53,15 @@ dependencies {
     // Firebase Services
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.firebase:firebase-functions:...") // removed placeholder; add a real version if you use Functions
+    implementation("com.google.firebase:firebase-firestore") // Added Firestore
 
+    // Coroutines for async operations (required for Firestore integration)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+
+    // RecyclerView (for displaying grocery items list)
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
+
+    // Lifecycle components for coroutines (enables lifecycleScope)
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
 }

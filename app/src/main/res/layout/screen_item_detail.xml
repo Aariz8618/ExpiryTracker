@@ -20,7 +20,10 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:padding="16dp">
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:paddingTop="24dp"
+            android:paddingBottom="8dp">
 
             <com.google.android.material.button.MaterialButton
                 android:layout_width="48dp"
@@ -37,8 +40,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Item Details"
-                android:textStyle="bold"
-                android:textSize="20sp"
+                android:fontFamily="@font/roboto_bold"
+                android:textSize="22sp"
                 android:textColor="@color/green_primary"
                 android:layout_marginLeft="8dp" />
         </LinearLayout>
@@ -94,7 +97,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Fresh Apples"
-                        android:textStyle="bold"
+                        android:fontFamily="@font/roboto_bold"
                         android:textSize="24sp"
                         android:textColor="@color/gray_800"
                         android:layout_marginTop="16dp" />
@@ -115,7 +118,7 @@
                             android:layout_height="wrap_content"
                             android:text="Fruits"
                             android:textColor="@color/green_primary"
-                            android:textStyle="bold"
+                            android:fontFamily="@font/roboto_bold"
                             android:textSize="14sp"
                             android:paddingLeft="16dp"
                             android:paddingRight="16dp"
@@ -144,7 +147,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Expiry Information"
-                        android:textStyle="bold"
+                        android:fontFamily="@font/roboto_bold"
                         android:textSize="18sp"
                         android:textColor="@color/gray_800"
                         android:layout_marginBottom="16dp" />
@@ -160,6 +163,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Expiry Date:"
+                            android:fontFamily="@font/roboto"
                             android:textColor="@color/gray_600"
                             android:textSize="16sp" />
 
@@ -168,7 +172,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Sep 25, 2025"
-                            android:textStyle="bold"
+                            android:fontFamily="@font/roboto_bold"
                             android:textSize="16sp"
                             android:textColor="@color/gray_800" />
                     </LinearLayout>
@@ -183,6 +187,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Status:"
+                            android:fontFamily="@font/roboto"
                             android:textColor="@color/gray_600"
                             android:textSize="16sp" />
 
@@ -230,7 +235,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Purchase Information"
-                        android:textStyle="bold"
+                        android:fontFamily="@font/roboto_bold"
                         android:textSize="18sp"
                         android:textColor="@color/gray_800"
                         android:layout_marginBottom="16dp" />
@@ -315,7 +320,7 @@
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/ic_edit"
+                android:src="@drawable/edit"
                 android:layout_marginEnd="8dp"
                 app:tint="@color/green_primary" />
 

@@ -3,38 +3,79 @@ package com.aariz.expirytracker
 import android.app.DatePickerDialog
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import android.view.View
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
-import java.text.ParseException
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 class AddItemActivity : AppCompatActivity() {
+
     private var quantity = 1
     private lateinit var qtyText: TextView
     private lateinit var inputName: EditText
     private lateinit var textCategory: TextView
     private lateinit var textPurchaseDate: TextView
     private lateinit var textExpiryDate: TextView
+    private lateinit var saveButton: LinearLayout
+    private lateinit var loadingOverlay: View
+    private lateinit var progressBar: ProgressBar
 
     private var selectedCategory: String = ""
     private var selectedPurchaseDate: String = ""
     private var selectedExpiryDate: String = ""
 
+    private lateinit var firestoreRepository: FirestoreRepository
+    private lateinit var auth: FirebaseAuth
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_add_item)
+
+        auth = FirebaseAuth.getInstance()
+        firestoreRepository = FirestoreRepository()
+
+        if (auth.currentUser == null) {
+            Toast.makeText(this, "Please login to add items", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
 
         initViews()
         setupClickListeners()
         setupInitialValues()
         setupBackPressedHandler()
+        createUserProfileIfNeeded()
+    }
+
+    private fun createUserProfileIfNeeded() {
+        val currentUser = auth.currentUser ?: return
+
+        lifecycleScope.launch {
+            try {
+                val user = User(
+                    id = currentUser.uid,
+                    name = currentUser.displayName ?: "User",
+                    email = currentUser.email ?: ""
+                )
+                firestoreRepository.createUserProfile(user)
+            } catch (e: Exception) {
+                Log.e("AddItemActivity", "Error creating user profile: ${e.message}")
+                // Don't show error to user as this is not critical for adding items
+            }
+        }
     }
 
     private fun initViews() {
@@ -43,20 +84,19 @@ class AddItemActivity : AppCompatActivity() {
         textCategory = findViewById(R.id.text_category)
         textPurchaseDate = findViewById(R.id.text_purchase_date)
         textExpiryDate = findViewById(R.id.text_expiry_date)
+        saveButton = findViewById(R.id.button_save_item)
+        loadingOverlay = findViewById(R.id.loading_overlay)
+        progressBar = findViewById(R.id.progress_bar)
     }
 
     private fun setupClickListeners() {
-        // Back button
         findViewById<MaterialButton>(R.id.btn_back).setOnClickListener {
             onBackPressedDispatcher.onBackPressed()
         }
 
-        // Quantity controls
         findViewById<LinearLayout>(R.id.button_decrement).setOnClickListener {
-            if (quantity > 1) {
-                quantity--
-                qtyText.text = quantity.toString()
-            }
+            if (quantity > 1) quantity--
+            qtyText.text = quantity.toString()
         }
 
         findViewById<LinearLayout>(R.id.button_increment).setOnClickListener {
@@ -64,38 +104,30 @@ class AddItemActivity : AppCompatActivity() {
             qtyText.text = quantity.toString()
         }
 
-        // Category selector
         findViewById<LinearLayout>(R.id.category_container).setOnClickListener {
             showCategoryDialog()
         }
 
-        // Purchase date picker
         findViewById<LinearLayout>(R.id.purchase_date_container).setOnClickListener {
-            showDatePicker(true) // true for purchase date
+            showDatePicker(true)
         }
 
-        // Expiry date picker
         findViewById<LinearLayout>(R.id.expiry_date_container).setOnClickListener {
-            showDatePicker(false) // false for expiry date
+            showDatePicker(false)
         }
 
-        // Scan barcode button
         findViewById<LinearLayout>(R.id.button_scan).setOnClickListener {
-            // TODO: Implement barcode scanning functionality
             Toast.makeText(this, "Barcode scanning not implemented yet", Toast.LENGTH_SHORT).show()
         }
 
-        // Save button
-        findViewById<LinearLayout>(R.id.button_save_item).setOnClickListener {
-            saveItem()
+        saveButton.setOnClickListener {
+            saveItemToFirestore()
         }
     }
 
     private fun setupInitialValues() {
         qtyText.text = quantity.toString()
-
-        // Set current date as default purchase date
-        val currentDate = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(Date())
+        val currentDate = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date())
         textPurchaseDate.text = currentDate
         selectedPurchaseDate = currentDate
         textPurchaseDate.setTextColor(getColor(R.color.gray_800))
@@ -103,25 +135,26 @@ class AddItemActivity : AppCompatActivity() {
 
     private fun showCategoryDialog() {
         val categories = arrayOf("Dairy", "Meat", "Vegetables", "Fruits", "Bakery", "Frozen", "Pantry", "Other")
-
-        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
-        builder.setTitle("Select Category")
-        builder.setItems(categories) { _, which ->
-            selectedCategory = categories[which]
-            textCategory.text = selectedCategory
-            textCategory.setTextColor(getColor(R.color.gray_800))
-        }
-        builder.show()
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Select Category")
+            .setItems(categories) { _, which ->
+                selectedCategory = categories[which]
+                textCategory.text = selectedCategory
+                textCategory.setTextColor(getColor(R.color.gray_800))
+            }
+            .show()
     }
 
     private fun showDatePicker(isPurchaseDate: Boolean) {
         val calendar = Calendar.getInstance()
-
-        // Set minimum date to today for expiry date
         val datePickerDialog = DatePickerDialog(
             this,
             { _, year, month, dayOfMonth ->
-                val selectedDate = String.format("%02d/%02d/%d", month + 1, dayOfMonth, year)
+                val date = Calendar.getInstance().apply {
+                    set(year, month, dayOfMonth)
+                }.time
+                val selectedDate = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(date)
+
                 if (isPurchaseDate) {
                     selectedPurchaseDate = selectedDate
                     textPurchaseDate.text = selectedDate
@@ -136,151 +169,125 @@ class AddItemActivity : AppCompatActivity() {
             calendar.get(Calendar.MONTH),
             calendar.get(Calendar.DAY_OF_MONTH)
         )
-
-        // For expiry date, set minimum date to today
-        if (!isPurchaseDate) {
-            datePickerDialog.datePicker.minDate = System.currentTimeMillis()
-        }
-
+        if (!isPurchaseDate) datePickerDialog.datePicker.minDate = System.currentTimeMillis()
         datePickerDialog.show()
     }
 
-    private fun saveItem() {
+    private fun saveItemToFirestore() {
         val itemName = inputName.text.toString().trim()
-
-        // Validate required fields
         if (itemName.isEmpty()) {
             Toast.makeText(this, "Please enter item name", Toast.LENGTH_SHORT).show()
             inputName.requestFocus()
             return
         }
-
         if (selectedCategory.isEmpty()) {
             Toast.makeText(this, "Please select a category", Toast.LENGTH_SHORT).show()
             return
         }
-
         if (selectedExpiryDate.isEmpty()) {
             Toast.makeText(this, "Please select expiry date", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // Calculate days left and status
-        val daysLeft = calculateDaysLeft(selectedExpiryDate)
-        val status = determineStatus(daysLeft)
-
-        // Create result intent with item data
-        val resultIntent = Intent().apply {
-            putExtra("id", generateId())
-            putExtra("name", itemName)
-            putExtra("category", selectedCategory)
-            putExtra("expiryDate", formatDisplayDate(selectedExpiryDate))
-            putExtra("purchaseDate", formatDisplayDate(selectedPurchaseDate))
-            putExtra("quantity", quantity)
-            putExtra("status", status)
-            putExtra("daysLeft", daysLeft)
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
+            return
         }
 
-        // Set result and finish
-        setResult(RESULT_OK, resultIntent)
+        val daysLeft = calculateDaysLeft(selectedExpiryDate)
+        val status = determineStatus(daysLeft)
+        val now = Date()
 
-        Toast.makeText(this, "Item '$itemName' saved successfully!", Toast.LENGTH_SHORT).show()
-        finish()
+        Log.d("AddItemActivity", "Saving item for userId: ${currentUser.uid}")
+
+        val groceryItem = GroceryItem(
+            name = itemName,
+            category = selectedCategory,
+            expiryDate = selectedExpiryDate,
+            purchaseDate = selectedPurchaseDate,
+            quantity = quantity,
+            status = status,
+            daysLeft = daysLeft,
+            createdAt = now,
+            updatedAt = now
+        )
+
+        showLoading(true)
+        lifecycleScope.launch {
+            try {
+                val result = firestoreRepository.addGroceryItem(groceryItem)
+                showLoading(false)
+                if (result.isSuccess) {
+                    Log.d("AddItemActivity", "Item saved successfully: $itemName")
+                    Toast.makeText(this@AddItemActivity, "Item saved successfully!", Toast.LENGTH_SHORT).show()
+                    setResult(RESULT_OK)
+                    finish()
+                } else {
+                    val error = result.exceptionOrNull()
+                    Log.e("AddItemActivity", "Failed to save item: ${error?.message}", error)
+                    Toast.makeText(this@AddItemActivity, "Failed to save item: ${error?.message}", Toast.LENGTH_LONG).show()
+                }
+            } catch (e: Exception) {
+                showLoading(false)
+                Log.e("AddItemActivity", "Exception while saving item: ${e.message}", e)
+                Toast.makeText(this@AddItemActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun showLoading(show: Boolean) {
+        loadingOverlay.visibility = if (show) View.VISIBLE else View.GONE
+        progressBar.visibility = if (show) View.VISIBLE else View.GONE
+        saveButton.isEnabled = !show
+        saveButton.alpha = if (show) 0.6f else 1f
     }
 
     private fun calculateDaysLeft(expiryDate: String): Int {
         return try {
-            val sdf = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
+            val sdf = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
             val expiry = sdf.parse(expiryDate)
-            val today = Date()
-
-            // Reset time to start of day for accurate calculation
-            val calToday = Calendar.getInstance().apply {
-                time = today
+            val today = Calendar.getInstance().apply {
                 set(Calendar.HOUR_OF_DAY, 0)
                 set(Calendar.MINUTE, 0)
                 set(Calendar.SECOND, 0)
                 set(Calendar.MILLISECOND, 0)
-            }
-
-            val calExpiry = Calendar.getInstance().apply {
-                time = expiry!!
-                set(Calendar.HOUR_OF_DAY, 0)
-                set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
-            }
-
-            if (expiry != null) {
-                val diffInMillies = calExpiry.timeInMillis - calToday.timeInMillis
-                TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS).toInt()
-            } else {
-                0
-            }
-        } catch (e: ParseException) {
+            }.time
+            val diff = expiry!!.time - today.time
+            TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS).toInt()
+        } catch (e: Exception) {
             0
         }
     }
 
-    private fun determineStatus(daysLeft: Int): String {
-        return when {
-            daysLeft < 0 -> "expired"
-            daysLeft <= 3 -> "expiring"
-            else -> "fresh"
-        }
-    }
-
-    private fun formatDisplayDate(date: String): String {
-        return try {
-            val inputFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
-            val outputFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-            val parsedDate = inputFormat.parse(date)
-            if (parsedDate != null) {
-                outputFormat.format(parsedDate)
-            } else {
-                date
-            }
-        } catch (e: ParseException) {
-            date
-        }
-    }
-
-    private fun generateId(): Int {
-        // Generate a simple ID based on current timestamp
-        return (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
+    private fun determineStatus(daysLeft: Int) = when {
+        daysLeft < 0 -> "expired"
+        daysLeft <= 3 -> "expiring"
+        else -> "fresh"
     }
 
     private fun setupBackPressedHandler() {
         val callback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                val hasUnsavedChanges = hasUnsavedChanges()
-
-                if (hasUnsavedChanges) {
-                    showDiscardChangesDialog()
-                } else {
-                    finish()
-                }
+                if (hasUnsavedChanges()) showDiscardChangesDialog() else finish()
             }
         }
         onBackPressedDispatcher.addCallback(this, callback)
     }
 
     private fun hasUnsavedChanges(): Boolean {
-        val itemName = inputName.text.toString().trim()
-        return itemName.isNotEmpty() ||
+        return inputName.text.toString().trim().isNotEmpty() ||
                 selectedCategory.isNotEmpty() ||
-                (selectedExpiryDate.isNotEmpty() && selectedExpiryDate != "mm/dd/yyyy") ||
+                selectedExpiryDate.isNotEmpty() ||
                 quantity != 1
     }
 
     private fun showDiscardChangesDialog() {
-        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
-        builder.setTitle("Discard Changes")
-        builder.setMessage("You have unsaved changes. Are you sure you want to discard them?")
-        builder.setPositiveButton("Discard") { _, _ ->
-            finish()
-        }
-        builder.setNegativeButton("Cancel", null)
-        builder.show()
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Discard Changes")
+            .setMessage("You have unsaved changes. Are you sure you want to discard them?")
+            .setPositiveButton("Discard") { _, _ -> finish() }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 }

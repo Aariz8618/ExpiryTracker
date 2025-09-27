@@ -20,8 +20,8 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingTop="16dp"
-            android:paddingBottom="16dp"
+            android:paddingTop="24dp"
+            android:paddingBottom="8dp"
             android:paddingLeft="8dp"
             android:paddingRight="16dp">
 
@@ -42,7 +42,7 @@
                 android:layout_height="wrap_content"
                 android:text="Add Item"
                 android:textStyle="bold"
-                android:textSize="18sp"
+                android:textSize="22sp"
                 android:textColor="@color/green_primary"
                 android:layout_marginLeft="4dp" />
         </LinearLayout>
@@ -140,7 +140,6 @@
                     app:tint="@color/gray_600" />
             </LinearLayout>
 
-
             <!-- Purchase Date Label -->
             <TextView
                 android:layout_width="wrap_content"
@@ -178,7 +177,6 @@
                     android:textSize="16sp"
                     android:layout_marginStart="12dp" />
             </LinearLayout>
-
 
             <!-- Expiry Date Label -->
             <TextView
@@ -337,8 +335,9 @@
         android:paddingLeft="20dp"
         android:paddingRight="20dp"
         android:paddingTop="16dp"
-        android:paddingBottom="30dp">
+        android:paddingBottom="44dp">
 
+        <!-- Save button with loading state support -->
         <LinearLayout
             android:id="@+id/button_save_item"
             android:layout_width="match_parent"
@@ -349,7 +348,17 @@
             android:clickable="true"
             android:focusable="true">
 
+            <!-- Progress indicator (hidden by default) -->
+            <ProgressBar
+                android:id="@+id/progress_bar"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginEnd="8dp"
+                android:indeterminateTint="@color/white"
+                android:visibility="gone" />
+
             <TextView
+                android:id="@+id/save_button_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Save Item"
@@ -358,5 +367,39 @@
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
+
+    <!-- Loading overlay (covers entire screen during save operation) -->
+    <FrameLayout
+        android:id="@+id/loading_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_loading_dialog"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:gravity="center">
+
+            <ProgressBar
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:indeterminateTint="@color/green_primary"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Saving item..."
+                android:textColor="@color/gray_800"
+                android:textSize="16sp" />
+        </LinearLayout>
+    </FrameLayout>
 
 </RelativeLayout>

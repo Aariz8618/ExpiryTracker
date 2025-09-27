@@ -85,6 +85,9 @@ class LoginActivity : AppCompatActivity() {
 
                     // Check if email is verified
                     if (user?.isEmailVerified == true) {
+                        // Mark that user has successfully logged in through our app
+                        markUserLoggedIn()
+
                         Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show()
                         // Navigate to main dashboard
                         startActivity(Intent(this, DashboardActivity::class.java))
@@ -128,6 +131,12 @@ class LoginActivity : AppCompatActivity() {
                     text = "Login"
                 }
             }
+    }
+
+    private fun markUserLoggedIn() {
+        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+        prefs.edit().putBoolean("user_logged_in_before", true).apply()
+        Log.d("LoginAuth", "Marked user as having logged in successfully")
     }
 
     private fun sendPasswordResetEmail(email: String) {

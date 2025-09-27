@@ -2,36 +2,111 @@ package com.aariz.expirytracker
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
+import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ProgressBar
+import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
 
 class DashboardActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: GroceryAdapter
     private lateinit var emptyState: LinearLayout
+    private lateinit var greetingText: TextView
+    private lateinit var profileButton: ImageView
+    private lateinit var loadingIndicator: LinearLayout
     private val groceryItems = mutableListOf<GroceryItem>()
 
-    companion object {
-        const val ADD_ITEM_REQUEST_CODE = 1001
+    private lateinit var firestoreRepository: FirestoreRepository
+    private lateinit var auth: FirebaseAuth
+
+    // Activity Result Launchers
+    private val addItemLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK && result.data != null) {
+            val itemSaved = result.data?.getBooleanExtra("item_saved", false) ?: false
+            if (itemSaved) {
+                Toast.makeText(this, "Item added successfully!", Toast.LENGTH_SHORT).show()
+                // Reload all items to get the fresh data from Firestore
+                loadGroceryItems()
+            }
+        }
+    }
+
+    private val profileLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        // Check if user logged out from profile screen
+        if (auth.currentUser == null) {
+            // User logged out, clear the logged-in flag and redirect to login
+            clearUserLoggedInFlag()
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+        } else {
+            // User came back from profile, refresh greeting
+            setupGreeting()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_dashboard)
 
+        // Initialize Firebase components
+        auth = FirebaseAuth.getInstance()
+        firestoreRepository = FirestoreRepository()
+
+        // Check if user is authenticated
+        if (auth.currentUser == null) {
+            // Clear logged-in flag and redirect to login activity
+            clearUserLoggedInFlag()
+            Toast.makeText(this, "Please login to continue", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+            return
+        }
+
         initViews()
         setupRecyclerView()
         setupNavigation()
         setupFab()
-        updateEmptyState()
+        setupProfileButton()
+        setupGreeting()
+        loadGroceryItems()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Check if user is still authenticated when returning to dashboard
+        if (auth.currentUser == null) {
+            clearUserLoggedInFlag()
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+            return
+        }
+
+        // Reload items when returning to dashboard to get fresh data
+        loadGroceryItems()
+        // Update greeting in case user updated their profile
+        setupGreeting()
     }
 
     private fun initViews() {
         recyclerView = findViewById(R.id.recycler_items)
         emptyState = findViewById(R.id.empty_state)
+        greetingText = findViewById(R.id.tv_greeting)
+        profileButton = findViewById(R.id.iv_profile)
+        loadingIndicator = findViewById(R.id.loading_indicator)
     }
 
     private fun setupRecyclerView() {
@@ -61,19 +136,24 @@ class DashboardActivity : AppCompatActivity() {
         val tabSettings = findViewById<LinearLayout>(R.id.tab_settings)
 
         tabHome.setOnClickListener {
-            // Already on home - do nothing or refresh
+            // Already on home - refresh data
+            loadGroceryItems()
         }
 
         tabStats.setOnClickListener {
             // startActivity(Intent(this, StatisticsActivity::class.java))
+            Toast.makeText(this, "Statistics coming soon!", Toast.LENGTH_SHORT).show()
         }
 
         tabRecipes.setOnClickListener {
             // startActivity(Intent(this, RecipesActivity::class.java))
+            Toast.makeText(this, "Recipes coming soon!", Toast.LENGTH_SHORT).show()
         }
 
         tabSettings.setOnClickListener {
-            // startActivity(Intent(this, SettingsActivity::class.java))
+            // Navigate to Profile/Settings screen
+            val intent = Intent(this, ProfileActivity::class.java)
+            profileLauncher.launch(intent)
         }
     }
 
@@ -81,48 +161,85 @@ class DashboardActivity : AppCompatActivity() {
         val fab = findViewById<FloatingActionButton>(R.id.fab_add_item)
         fab.setOnClickListener {
             val intent = Intent(this, AddItemActivity::class.java)
-            startActivityForResult(intent, ADD_ITEM_REQUEST_CODE)
+            addItemLauncher.launch(intent)
         }
     }
 
-    @Deprecated("This method has been deprecated in favor of using the Activity Result API")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
+    private fun setupProfileButton() {
+        profileButton.setOnClickListener {
+            // Navigate to Profile screen
+            val intent = Intent(this, ProfileActivity::class.java)
+            profileLauncher.launch(intent)
+        }
+    }
 
-        if (requestCode == ADD_ITEM_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
-            // Get the new item data from the intent
-            val newItem = GroceryItem(
-                id = data.getIntExtra("id", 0),
-                name = data.getStringExtra("name") ?: "",
-                category = data.getStringExtra("category") ?: "",
-                expiryDate = data.getStringExtra("expiryDate") ?: "",
-                purchaseDate = data.getStringExtra("purchaseDate") ?: "",
-                quantity = data.getIntExtra("quantity", 1),
-                status = data.getStringExtra("status") ?: "fresh",
-                daysLeft = data.getIntExtra("daysLeft", 0)
-            )
+    private fun setupGreeting() {
+        val currentUser = auth.currentUser
+        val displayName = currentUser?.displayName
+        val email = currentUser?.email
 
-            // Add the new item to the list
-            groceryItems.add(0, newItem) // Add at the beginning
+        val greeting = when {
+            !displayName.isNullOrEmpty() -> "Hello, $displayName 👋"
+            !email.isNullOrEmpty() -> "Hello, ${email.substringBefore("@")} 👋"
+            else -> "Hello, User 👋"
+        }
 
-            // Notify adapter about the new item
-            adapter.notifyItemInserted(0)
+        greetingText.text = greeting
+    }
 
-            // Update empty state
-            updateEmptyState()
+    private fun loadGroceryItems() {
+        showLoading(true)
 
-            // Scroll to the top to show newly added item
-            recyclerView.smoothScrollToPosition(0)
+        lifecycleScope.launch {
+            try {
+                val result = firestoreRepository.getUserGroceryItems()
+                showLoading(false)
+
+                if (result.isSuccess) {
+                    val items = result.getOrNull() ?: emptyList()
+
+                    // Update the list and notify adapter
+                    groceryItems.clear()
+                    groceryItems.addAll(items)
+                    adapter.notifyDataSetChanged()
+
+                    updateEmptyState()
+                } else {
+                    val error = result.exceptionOrNull()
+                    Toast.makeText(this@DashboardActivity, "Failed to load items: ${error?.message}", Toast.LENGTH_LONG).show()
+                    updateEmptyState()
+                }
+            } catch (e: Exception) {
+                showLoading(false)
+                Toast.makeText(this@DashboardActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                updateEmptyState()
+            }
         }
     }
 
     private fun updateEmptyState() {
         if (groceryItems.isEmpty()) {
-            recyclerView.visibility = android.view.View.GONE
-            emptyState.visibility = android.view.View.VISIBLE
+            recyclerView.visibility = View.GONE
+            emptyState.visibility = View.VISIBLE
         } else {
-            recyclerView.visibility = android.view.View.VISIBLE
-            emptyState.visibility = android.view.View.GONE
+            recyclerView.visibility = View.VISIBLE
+            emptyState.visibility = View.GONE
         }
+    }
+
+    private fun showLoading(show: Boolean) {
+        loadingIndicator.visibility = if (show) View.VISIBLE else View.GONE
+        recyclerView.visibility = if (show) View.GONE else View.VISIBLE
+        emptyState.visibility = View.GONE
+    }
+
+    private fun clearUserLoggedInFlag() {
+        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+        prefs.edit().putBoolean("user_logged_in_before", false).apply()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // No cleanup needed for ProgressBar
     }
 }

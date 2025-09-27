@@ -37,4 +37,14 @@
         <!-- Orange Colors -->
         <color name="orange_400">#FF9800</color>
         <color name="orange_600">#F57C00</color>
+
+    <color name="gray_400">#9CA3AF</color>
+    <color name="gray_900">#111827</color>
+
+    <!-- Status colors -->
+    <color name="green_400">#4ADE80</color>
+    <color name="green_500">#22C55E</color>
+
+    <color name="red_400">#F87171</color>
+    <color name="red_600">#DC2626</color>
 </resources>

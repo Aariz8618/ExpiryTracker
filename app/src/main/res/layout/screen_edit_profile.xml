@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/gray_50">
+
+    <!-- Top App Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="30dp"
+        android:paddingBottom="16dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:gravity="center_vertical"
+        android:background="@android:color/white"
+        android:elevation="2dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_back"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            app:icon="@drawable/left_arrow"
+            app:iconTint="@color/green_primary"
+            app:iconSize="24dp"
+            style="@style/Widget.Material3.Button.IconButton" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Edit Profile"
+            android:textSize="22sp"
+            android:fontFamily="@font/roboto_bold"
+            android:textColor="@color/gray_900"
+            android:gravity="center"
+            android:layout_marginEnd="48dp" />
+
+    </LinearLayout>
+
+    <!-- Scrollable Content -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <!-- Profile Picture Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:layout_marginBottom="32dp">
+
+                <!-- Profile Avatar with Camera Icon -->
+                <FrameLayout
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:layout_marginBottom="12dp">
+
+                    <!-- Main Avatar Circle -->
+                    <FrameLayout
+                        android:layout_width="100dp"
+                        android:layout_height="100dp">
+
+                        <View
+                            android:layout_width="100dp"
+                            android:layout_height="100dp"
+                            android:background="@drawable/circle_icon_bg" />
+
+                        <TextView
+                            android:id="@+id/tv_avatar_initial"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="G"
+                            android:textSize="36sp"
+                            android:textStyle="bold"
+                            android:textColor="@android:color/white" />
+
+                    </FrameLayout>
+
+                    <!-- Camera Icon Overlay -->
+                    <FrameLayout
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_gravity="bottom|end"
+                        android:layout_marginEnd="4dp"
+                        android:layout_marginBottom="4dp"
+                        android:background="@drawable/circle_icon_bg"
+                        android:backgroundTint="@color/green_primary">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_camera"
+                            app:tint="@android:color/white" />
+
+                    </FrameLayout>
+
+                </FrameLayout>
+
+                <!-- Change Photo Button -->
+                <TextView
+                    android:id="@+id/btn_change_photo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Change Photo"
+                    android:textSize="16sp"
+                    android:textColor="@color/green_primary"
+                    android:fontFamily="@font/roboto"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:padding="8dp" />
+
+            </LinearLayout>
+
+            <!-- Form Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="32dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@android:color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="24dp">
+
+                    <!-- Full Name Field -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Full Name"
+                        android:textSize="16sp"
+                        android:textColor="@color/gray_900"
+                        android:fontFamily="@font/roboto"
+                        android:layout_marginBottom="8dp" />
+
+                    <EditText
+                        android:id="@+id/et_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:hint="Enter your full name"
+                        android:background="@drawable/edittext_background"
+                        android:padding="16dp"
+                        android:textSize="16sp"
+                        android:fontFamily="@font/roboto"
+                        android:layout_marginBottom="20dp" />
+
+                    <!-- Email Address Field -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Email Address"
+                        android:textSize="16sp"
+                        android:textColor="@color/gray_900"
+                        android:fontFamily="@font/roboto"
+                        android:layout_marginBottom="8dp" />
+
+                    <EditText
+                        android:id="@+id/et_email"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:hint="Enter your email address"
+                        android:inputType="textEmailAddress"
+                        android:background="@drawable/edittext_background"
+                        android:padding="16dp"
+                        android:textSize="16sp"
+                        android:fontFamily="@font/roboto"
+                        android:layout_marginBottom="20dp" />
+
+                    <!-- Phone Number Field -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:fontFamily="@font/roboto"
+                        android:text="Phone Number"
+                        android:textColor="@color/gray_900"
+                        android:textSize="16sp" />
+
+                    <EditText
+                        android:id="@+id/et_phone"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:hint="Enter your phone number"
+                        android:inputType="phone"
+                        android:background="@drawable/edittext_background"
+                        android:padding="16dp"
+                        android:textSize="16sp"
+                        android:fontFamily="@font/roboto" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Save Changes Button -->
+            <Button
+                android:id="@+id/btn_save"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Save Changes"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:backgroundTint="@color/green_primary"
+                android:textColor="@android:color/white"
+                android:fontFamily="@font/roboto"
+                android:layout_marginBottom="12dp"
+                app:cornerRadius="12dp" />
+
+            <!-- Cancel Button -->
+            <Button
+                android:id="@+id/btn_cancel"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Cancel"
+                android:textSize="16sp"
+                android:textColor="@color/gray_600"
+                android:fontFamily="@font/roboto"
+                android:background="@drawable/button_outline_background"
+                app:cornerRadius="12dp"
+                android:layout_marginBottom="44dp"/>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout>
