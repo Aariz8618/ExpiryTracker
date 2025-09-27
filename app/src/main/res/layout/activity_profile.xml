@@ -86,7 +86,6 @@
                         android:textStyle="bold"
                         android:textColor="@android:color/white" />
 
-
                 </FrameLayout>
 
                 <!-- User Name -->
@@ -127,6 +126,48 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="16dp">
+
+                    <!-- Name Row -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingVertical="12dp">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_user"
+                            app:tint="@color/green_primary"
+                            android:layout_marginEnd="16dp" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Name"
+                            android:fontFamily="@font/roboto"
+                            android:textSize="16sp"
+                            android:textColor="@color/gray_600" />
+
+                        <TextView
+                            android:id="@+id/tv_name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Guest"
+                            android:fontFamily="@font/roboto"
+                            android:textSize="16sp"
+                            android:textColor="@color/gray_900" />
+
+                    </LinearLayout>
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/gray_200"
+                        android:layout_marginVertical="8dp" />
 
                     <!-- Phone Number Row -->
                     <LinearLayout
@@ -213,7 +254,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="24dp"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="2dp"
                 app:cardBackgroundColor="@android:color/white">
@@ -300,285 +341,6 @@
                             android:layout_height="20dp"
                             android:src="@drawable/right_arrow"
                             app:tint="@color/gray_600" />
-
-                    </LinearLayout>
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Personalization Card -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="@android:color/white">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <!-- Personalization Header -->
-                    <LinearLayout
-                        android:id="@+id/btn_personalization"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:background="?android:attr/selectableItemBackground"
-                        android:padding="16dp"
-                        android:clickable="true"
-                        android:focusable="true">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:src="@drawable/ic_user"
-                            app:tint="@color/green_primary"
-                            android:layout_marginEnd="16dp" />
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Personalization"
-                            android:fontFamily="@font/roboto"
-                            android:textSize="16sp"
-                            android:textColor="@color/gray_900" />
-
-                        <androidx.appcompat.widget.AppCompatImageView
-                            android:id="@+id/iv_personalization_arrow"
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:src="@drawable/right_arrow"
-                            app:tint="@color/gray_600" />
-
-                    </LinearLayout>
-
-                    <!-- Personalization Content (Initially Hidden) -->
-                    <LinearLayout
-                        android:id="@+id/ll_personalization_content"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp"
-                        android:visibility="visible">
-
-                        <!-- Dietary Preferences Section -->
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Dietary Preferences"
-                            android:fontFamily="@font/roboto"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/gray_900"
-                            android:layout_marginBottom="12dp" />
-
-                        <!-- Dietary Options Grid -->
-                        <GridLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:columnCount="2"
-                            android:layout_marginBottom="24dp">
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btn_veg"
-                                android:layout_width="0dp"
-                                android:layout_height="48dp"
-                                android:layout_columnWeight="1"
-                                android:layout_marginEnd="4dp"
-                                android:layout_marginBottom="8dp"
-                                android:text="Veg"
-                                android:textSize="14sp"
-                                android:fontFamily="@font/roboto"
-                                android:background="@drawable/dietary_button_selector"
-                                app:backgroundTint="@android:color/white"
-                                app:strokeColor="@color/gray_300"
-                                app:strokeWidth="1dp"
-                                app:cornerRadius="8dp"
-                                android:textColor="@color/gray_600"
-                                style="@style/Widget.Material3.Button.OutlinedButton" />
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btn_vegan"
-                                android:layout_width="0dp"
-                                android:layout_height="48dp"
-                                android:layout_columnWeight="1"
-                                android:layout_marginStart="4dp"
-                                android:layout_marginBottom="8dp"
-                                android:text="Vegan"
-                                android:background="@drawable/dietary_button_selector"
-                                android:textSize="14sp"
-                                android:fontFamily="@font/roboto"
-                                app:backgroundTint="@android:color/white"
-                                app:strokeColor="@color/gray_300"
-                                app:strokeWidth="1dp"
-                                app:cornerRadius="8dp"
-                                android:textColor="@color/gray_600"
-                                style="@style/Widget.Material3.Button.OutlinedButton" />
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btn_non_veg"
-                                android:layout_width="0dp"
-                                android:layout_height="48dp"
-                                android:layout_columnWeight="1"
-                                android:layout_marginEnd="4dp"
-                                android:text="Non-Veg"
-                                android:background="@drawable/dietary_button_selector"
-                                android:textSize="14sp"
-                                android:fontFamily="@font/roboto"
-                                app:strokeWidth="1dp"
-                                app:cornerRadius="8dp"
-                                android:textColor="@color/gray_600"
-                                style="@style/Widget.Material3.Button.OutlinedButton" />
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btn_custom"
-                                android:layout_width="0dp"
-                                android:layout_height="48dp"
-                                android:layout_columnWeight="1"
-                                android:layout_marginStart="4dp"
-                                android:text="Custom"
-                                android:background="@drawable/dietary_button_selector"
-                                android:textSize="14sp"
-                                android:fontFamily="@font/roboto"
-                                app:backgroundTint="@android:color/white"
-                                app:strokeColor="@color/gray_300"
-                                app:strokeWidth="1dp"
-                                app:cornerRadius="8dp"
-                                android:textColor="@color/gray_600"
-                                style="@style/Widget.Material3.Button.OutlinedButton" />
-
-                        </GridLayout>
-
-                        <!-- Favorite Categories Section -->
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Favorite Categories"
-                            android:fontFamily="@font/roboto"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/gray_900"
-                            android:layout_marginBottom="12dp" />
-
-                        <!-- Categories Tags -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:layout_marginBottom="8dp">
-
-                            <TextView
-                                android:id="@+id/chip_dairy"
-                                android:layout_width="wrap_content"
-                                android:layout_height="32dp"
-                                android:text="Dairy"
-                                android:textSize="12sp"
-                                android:fontFamily="@font/roboto"
-                                android:background="@drawable/chip_selector"
-                                android:paddingHorizontal="12dp"
-                                android:gravity="center"
-                                android:layout_marginEnd="8dp" />
-
-                            <TextView
-                                android:id="@+id/chip_snacks"
-                                android:layout_width="wrap_content"
-                                android:layout_height="32dp"
-                                android:text="Snacks"
-                                android:textSize="12sp"
-                                android:fontFamily="@font/roboto"
-                                android:background="@drawable/chip_selector"
-                                android:paddingHorizontal="12dp"
-                                android:gravity="center"
-                                android:layout_marginEnd="8dp" />
-
-                            <TextView
-                                android:id="@+id/chip_beverages"
-                                android:layout_width="wrap_content"
-                                android:layout_height="32dp"
-                                android:text="Beverages"
-                                android:textSize="12sp"
-                                android:fontFamily="@font/roboto"
-                                android:background="@drawable/chip_selector"
-                                android:paddingHorizontal="12dp"
-                                android:gravity="center"
-                                android:layout_marginEnd="8dp" />
-
-                            <TextView
-                                android:id="@+id/chip_fruits"
-                                android:layout_width="wrap_content"
-                                android:layout_height="32dp"
-                                android:text="Fruits"
-                                android:textSize="12sp"
-                                android:fontFamily="@font/roboto"
-                                android:background="@drawable/chip_selector"
-                                android:paddingHorizontal="12dp"
-                                android:gravity="center" />
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal">
-
-                            <TextView
-                                android:id="@+id/chip_frozen"
-                                android:layout_width="wrap_content"
-                                android:layout_height="32dp"
-                                android:text="Frozen"
-                                android:textSize="12sp"
-                                android:textColor="@color/gray_600"
-                                android:fontFamily="@font/roboto"
-                                android:background="@drawable/chip_selector"
-                                android:paddingHorizontal="12dp"
-                                android:gravity="center"
-                                android:layout_marginEnd="8dp" />
-
-                            <TextView
-                                android:id="@+id/chip_pantry"
-                                android:layout_width="wrap_content"
-                                android:layout_height="32dp"
-                                android:text="Pantry"
-                                android:textSize="12sp"
-                                android:textColor="@color/gray_600"
-                                android:fontFamily="@font/roboto"
-                                android:background="@drawable/chip_selector"
-                                android:paddingHorizontal="12dp"
-                                android:gravity="center"
-                                android:layout_marginEnd="8dp" />
-
-                            <TextView
-                                android:id="@+id/chip_vegetables"
-                                android:layout_width="wrap_content"
-                                android:layout_height="32dp"
-                                android:text="Vegetables"
-                                android:textSize="12sp"
-                                android:textColor="@color/gray_600"
-                                android:fontFamily="@font/roboto"
-                                android:background="@drawable/chip_selector"
-                                android:paddingHorizontal="12dp"
-                                android:gravity="center"
-                                android:layout_marginEnd="8dp" />
-
-                            <TextView
-                                android:id="@+id/chip_meat"
-                                android:layout_width="wrap_content"
-                                android:layout_height="32dp"
-                                android:text="Meat"
-                                android:textSize="12sp"
-                                android:textColor="@color/gray_600"
-                                android:fontFamily="@font/roboto"
-                                android:background="@drawable/chip_selector"
-                                android:paddingHorizontal="12dp"
-                                android:gravity="center" />
-
-                        </LinearLayout>
 
                     </LinearLayout>
 

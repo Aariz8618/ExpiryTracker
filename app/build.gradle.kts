@@ -64,4 +64,10 @@ dependencies {
 
     // Lifecycle components for coroutines (enables lifecycleScope)
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+
+    // WorkManager for scheduling notifications
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+
+    // For notifications
+    implementation("androidx.core:core-ktx:1.12.0")
 }

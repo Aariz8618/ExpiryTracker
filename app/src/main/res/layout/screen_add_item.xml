@@ -43,7 +43,7 @@
                 android:text="Add Item"
                 android:textStyle="bold"
                 android:textSize="22sp"
-                android:textColor="@color/green_primary"
+                android:textColor="@color/black"
                 android:layout_marginLeft="4dp" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

@@ -24,33 +24,12 @@ class ProfileActivity : AppCompatActivity() {
     private lateinit var tvAvatarInitial: TextView
     private lateinit var tvUserName: TextView
     private lateinit var tvUserEmail: TextView
+    private lateinit var tvName: TextView
     private lateinit var tvPhoneNumber: TextView
     private lateinit var tvMemberSince: TextView
     private lateinit var btnEditProfile: LinearLayout
     private lateinit var btnChangePassword: LinearLayout
-    private lateinit var btnPersonalization: LinearLayout
-    private lateinit var llPersonalizationContent: LinearLayout
     private lateinit var btnLogout: LinearLayout
-
-    // Personalization buttons
-    private lateinit var btnVeg: MaterialButton
-    private lateinit var btnVegan: MaterialButton
-    private lateinit var btnNonVeg: MaterialButton
-    private lateinit var btnCustom: MaterialButton
-
-    // Category chips
-    private lateinit var chipDairy: TextView
-    private lateinit var chipSnacks: TextView
-    private lateinit var chipBeverages: TextView
-    private lateinit var chipFruits: TextView
-    private lateinit var chipFrozen: TextView
-    private lateinit var chipPantry: TextView
-    private lateinit var chipVegetables: TextView
-    private lateinit var chipMeat: TextView
-
-    // Personalization data
-    private var selectedDietaryPreference: String = ""
-    private val selectedCategories = mutableSetOf<String>()
 
     // Activity Result Launcher for Edit Profile
     private val editProfileLauncher = registerForActivityResult(
@@ -73,7 +52,6 @@ class ProfileActivity : AppCompatActivity() {
         initViews()
         setupClickListeners()
         loadUserData()
-        setupPersonalizationListeners()
     }
 
     override fun onResume() {
@@ -87,29 +65,12 @@ class ProfileActivity : AppCompatActivity() {
         tvAvatarInitial = findViewById(R.id.tv_avatar_initial)
         tvUserName = findViewById(R.id.tv_user_name)
         tvUserEmail = findViewById(R.id.tv_user_email)
+        tvName = findViewById(R.id.tv_name)
         tvPhoneNumber = findViewById(R.id.tv_phone_number)
         tvMemberSince = findViewById(R.id.tv_member_since)
         btnEditProfile = findViewById(R.id.btn_edit_profile)
         btnChangePassword = findViewById(R.id.btn_change_password)
-        btnPersonalization = findViewById(R.id.btn_personalization)
-        llPersonalizationContent = findViewById(R.id.ll_personalization_content)
         btnLogout = findViewById(R.id.btn_logout)
-
-        // Initialize personalization buttons
-        btnVeg = findViewById(R.id.btn_veg)
-        btnVegan = findViewById(R.id.btn_vegan)
-        btnNonVeg = findViewById(R.id.btn_non_veg)
-        btnCustom = findViewById(R.id.btn_custom)
-
-        // Initialize category chips
-        chipDairy = findViewById(R.id.chip_dairy)
-        chipSnacks = findViewById(R.id.chip_snacks)
-        chipBeverages = findViewById(R.id.chip_beverages)
-        chipFruits = findViewById(R.id.chip_fruits)
-        chipFrozen = findViewById(R.id.chip_frozen)
-        chipPantry = findViewById(R.id.chip_pantry)
-        chipVegetables = findViewById(R.id.chip_vegetables)
-        chipMeat = findViewById(R.id.chip_meat)
     }
 
     private fun setupClickListeners() {
@@ -126,97 +87,8 @@ class ProfileActivity : AppCompatActivity() {
             showChangePasswordDialog()
         }
 
-        btnPersonalization.setOnClickListener {
-            // Toggle personalization content visibility
-            val arrow = findViewById<androidx.appcompat.widget.AppCompatImageView>(R.id.iv_personalization_arrow)
-
-            if (llPersonalizationContent.visibility == android.view.View.VISIBLE) {
-                llPersonalizationContent.visibility = android.view.View.GONE
-                arrow.rotation = 0f
-            } else {
-                llPersonalizationContent.visibility = android.view.View.VISIBLE
-                arrow.rotation = 90f
-            }
-        }
-
         btnLogout.setOnClickListener {
             showLogoutConfirmation()
-        }
-    }
-
-    private fun setupPersonalizationListeners() {
-        // Dietary preference buttons
-        btnVeg.setOnClickListener { selectDietaryPreference("vegetarian", btnVeg) }
-        btnVegan.setOnClickListener { selectDietaryPreference("vegan", btnVegan) }
-        btnNonVeg.setOnClickListener { selectDietaryPreference("non_vegetarian", btnNonVeg) }
-        btnCustom.setOnClickListener { selectDietaryPreference("custom", btnCustom) }
-
-        // Category chips
-        chipDairy.setOnClickListener { toggleCategory("dairy", chipDairy) }
-        chipSnacks.setOnClickListener { toggleCategory("snacks", chipSnacks) }
-        chipBeverages.setOnClickListener { toggleCategory("beverages", chipBeverages) }
-        chipFruits.setOnClickListener { toggleCategory("fruits", chipFruits) }
-        chipFrozen.setOnClickListener { toggleCategory("frozen", chipFrozen) }
-        chipPantry.setOnClickListener { toggleCategory("pantry", chipPantry) }
-        chipVegetables.setOnClickListener { toggleCategory("vegetables", chipVegetables) }
-        chipMeat.setOnClickListener { toggleCategory("meat", chipMeat) }
-    }
-
-    private fun selectDietaryPreference(preference: String, button: MaterialButton) {
-        // Reset all dietary buttons
-        resetDietaryButtons()
-
-        // Set selected preference
-        selectedDietaryPreference = preference
-        button.setBackgroundColor(getColor(R.color.green_primary))
-        button.setTextColor(getColor(android.R.color.white))
-
-        // Save to Firestore
-        savePersonalizationData()
-    }
-
-    private fun resetDietaryButtons() {
-        val buttons = listOf(btnVeg, btnVegan, btnNonVeg, btnCustom)
-        buttons.forEach { button ->
-            button.setBackgroundColor(getColor(android.R.color.white))
-            button.setTextColor(getColor(R.color.gray_600))
-        }
-    }
-
-    private fun toggleCategory(category: String, chip: TextView) {
-        if (selectedCategories.contains(category)) {
-            // Deselect
-            selectedCategories.remove(category)
-            chip.setBackgroundColor(getColor(android.R.color.white))
-            chip.setTextColor(getColor(R.color.gray_600))
-        } else {
-            // Select
-            selectedCategories.add(category)
-            chip.setBackgroundColor(getColor(R.color.green_primary))
-            chip.setTextColor(getColor(android.R.color.white))
-        }
-
-        // Save to Firestore
-        savePersonalizationData()
-    }
-
-    private fun savePersonalizationData() {
-        val currentUser = auth.currentUser
-        if (currentUser != null) {
-            val personalizationData = hashMapOf(
-                "dietaryPreference" to selectedDietaryPreference,
-                "favoriteCategories" to selectedCategories.toList(),
-                "personalizedAt" to com.google.firebase.Timestamp.now()
-            )
-
-            firestore.collection("users").document(currentUser.uid)
-                .set(mapOf("personalization" to personalizationData), com.google.firebase.firestore.SetOptions.merge())
-                .addOnSuccessListener {
-                    // Silent success - no toast for smooth UX
-                }
-                .addOnFailureListener { e ->
-                    Toast.makeText(this, "Failed to save preferences: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
         }
     }
 
@@ -231,6 +103,7 @@ class ProfileActivity : AppCompatActivity() {
 
             // Set user name and initial from Firebase Auth
             tvUserName.text = displayName
+            tvName.text = displayName
             tvAvatarInitial.text = displayName.firstOrNull()?.uppercase() ?: "U"
 
             // Set email from Firebase Auth
@@ -273,11 +146,9 @@ class ProfileActivity : AppCompatActivity() {
                     val firestoreName = document.getString("name")
                     if (!firestoreName.isNullOrEmpty()) {
                         tvUserName.text = firestoreName
+                        tvName.text = firestoreName
                         tvAvatarInitial.text = firestoreName.firstOrNull()?.uppercase() ?: "U"
                     }
-
-                    // Load personalization data
-                    loadPersonalizationData(document.data)
                 } else {
                     tvPhoneNumber.text = "Not provided"
                 }
@@ -286,70 +157,6 @@ class ProfileActivity : AppCompatActivity() {
                 tvPhoneNumber.text = "Error loading data"
                 Toast.makeText(this, "Error loading profile data: ${e.message}", Toast.LENGTH_SHORT).show()
             }
-    }
-
-    private fun loadPersonalizationData(data: Map<String, Any>?) {
-        if (data != null && data.containsKey("personalization")) {
-            val personalization = data["personalization"] as? Map<String, Any>
-            if (personalization != null) {
-                // Load dietary preference
-                selectedDietaryPreference = personalization["dietaryPreference"] as? String ?: ""
-                updateDietaryPreferenceUI()
-
-                // Load favorite categories
-                val categories = personalization["favoriteCategories"] as? List<String>
-                if (categories != null) {
-                    selectedCategories.clear()
-                    selectedCategories.addAll(categories)
-                    updateCategoriesUI()
-                }
-            }
-        }
-    }
-
-    private fun updateDietaryPreferenceUI() {
-        resetDietaryButtons()
-        when (selectedDietaryPreference) {
-            "vegetarian" -> {
-                btnVeg.setBackgroundColor(getColor(R.color.green_primary))
-                btnVeg.setTextColor(getColor(android.R.color.white))
-            }
-            "vegan" -> {
-                btnVegan.setBackgroundColor(getColor(R.color.green_primary))
-                btnVegan.setTextColor(getColor(android.R.color.white))
-            }
-            "non_vegetarian" -> {
-                btnNonVeg.setBackgroundColor(getColor(R.color.green_primary))
-                btnNonVeg.setTextColor(getColor(android.R.color.white))
-            }
-            "custom" -> {
-                btnCustom.setBackgroundColor(getColor(R.color.green_primary))
-                btnCustom.setTextColor(getColor(android.R.color.white))
-            }
-        }
-    }
-
-    private fun updateCategoriesUI() {
-        val chips = mapOf(
-            "dairy" to chipDairy,
-            "snacks" to chipSnacks,
-            "beverages" to chipBeverages,
-            "fruits" to chipFruits,
-            "frozen" to chipFrozen,
-            "pantry" to chipPantry,
-            "vegetables" to chipVegetables,
-            "meat" to chipMeat
-        )
-
-        chips.forEach { (category, chip) ->
-            if (selectedCategories.contains(category)) {
-                chip.setBackgroundColor(getColor(R.color.green_primary))
-                chip.setTextColor(getColor(android.R.color.white))
-            } else {
-                chip.setBackgroundColor(getColor(R.color.gray_200))
-                chip.setTextColor(getColor(R.color.gray_600))
-            }
-        }
     }
 
     private fun showChangePasswordDialog() {
