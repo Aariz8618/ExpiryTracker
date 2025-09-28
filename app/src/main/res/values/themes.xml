@@ -6,4 +6,9 @@
     </style>
 
     <style name="Theme.ExpiryTracker" parent="Base.Theme.ExpiryTracker" />
+
+    <style name="Theme.ExpiryTracker.FullScreen" parent="Theme.ExpiryTracker">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
 </resources>

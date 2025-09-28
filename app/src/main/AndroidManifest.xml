@@ -7,6 +7,15 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Camera hardware features -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" />
 
     <application
         android:name=".MyApplication"
@@ -20,6 +29,11 @@
         android:theme="@style/Theme.ExpiryTracker">
 
         <!-- Activities -->
+        <activity
+            android:name=".BarcodeScannerActivity"
+            android:exported="false"
+            android:screenOrientation="unspecified"
+            android:theme="@style/Theme.ExpiryTracker.FullScreen" />
         <activity
             android:name=".SettingsActivity"
             android:exported="false" />

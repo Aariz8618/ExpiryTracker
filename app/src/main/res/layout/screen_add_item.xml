@@ -34,8 +34,7 @@
                 app:icon="@drawable/left_arrow"
                 app:iconTint="@color/green_primary"
                 app:iconSize="20dp"
-                style="@style/Widget.Material3.Button.IconButton"
-                android:onClick="onBackPressed" />
+                style="@style/Widget.Material3.Button.IconButton" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -62,6 +61,78 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="20dp">
+
+            <!-- Barcode Info Section (Initially Hidden) -->
+            <LinearLayout
+                android:id="@+id/barcode_info_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_barcode_info"
+                android:padding="12dp"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/barcode_text"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Barcode: 123456789"
+                        android:textSize="12sp"
+                        android:textColor="@color/gray_700"
+                        android:fontFamily="monospace" />
+
+                    <ImageView
+                        android:id="@+id/clear_barcode_button"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_close"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:contentDescription="Clear barcode"
+                        app:tint="@color/gray_600" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- GS1 Info Section (Initially Hidden) -->
+            <LinearLayout
+                android:id="@+id/gs1_info_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_gs1_info"
+                android:padding="12dp"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/gs1_info_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="GS1 Data:\nExpiry: Dec 25, 2025\nBatch: ABC123"
+                    android:textSize="12sp"
+                    android:textColor="@color/gs1_text"
+                    android:fontFamily="monospace" />
+            </LinearLayout>
+
+            <!-- Product Image Section (Initially Hidden) -->
+            <ImageView
+                android:id="@+id/product_image_view"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_gravity="center"
+                android:layout_marginBottom="16dp"
+                android:scaleType="centerCrop"
+                android:background="@drawable/bg_image_rounded"
+                android:visibility="gone" />
 
             <!-- Item Name Label -->
             <TextView
@@ -130,7 +201,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Select category"
-                    android:textColor="@color/gray_800"
+                    android:textColor="@color/gray_600"
                     android:textSize="16sp" />
 
                 <ImageView
@@ -173,7 +244,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="mm/dd/yyyy"
-                    android:textColor="@color/gray_800"
+                    android:textColor="@color/gray_600"
                     android:textSize="16sp"
                     android:layout_marginStart="12dp" />
             </LinearLayout>
@@ -211,7 +282,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="mm/dd/yyyy"
-                    android:textColor="@color/gray_800"
+                    android:textColor="@color/gray_600"
                     android:textSize="16sp"
                     android:layout_marginStart="12dp" />
             </LinearLayout>

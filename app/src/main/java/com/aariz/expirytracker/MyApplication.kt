@@ -18,5 +18,8 @@ class MyApplication : Application() {
 
         // Schedule expiry checks
         notificationScheduler.scheduleExpiryChecks()
+
+        // Schedule periodic cache cleanup
+        CacheCleanupWorker.schedulePeriodicCleanup(this)
     }
 }

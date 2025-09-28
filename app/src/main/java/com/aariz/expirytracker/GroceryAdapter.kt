@@ -84,13 +84,15 @@ class GroceryAdapter(
             // Set icon based on category (with fallbacks for missing drawables)
             val iconRes = when (category.lowercase()) {
                 "fruits", "fruit" -> getDrawableResource("fruit", R.drawable.ic_apple)
-                "dairy" -> getDrawableResource("milk", R.drawable.ic_apple)
-                "vegetables", "vegetable" -> getDrawableResource("vegetable", R.drawable.ic_apple)
-                "meat" -> getDrawableResource("meat", R.drawable.ic_apple)
-                "bakery" -> getDrawableResource("breads", R.drawable.ic_apple)
-                "frozen" -> getDrawableResource("frozen", R.drawable.ic_apple)
-                "pantry" -> getDrawableResource("pantry", R.drawable.ic_apple)
-                else -> getDrawableResource("grocery", R.drawable.ic_cart)
+                "dairy" -> getDrawableResource("milk", R.drawable.milk)
+                "vegetables", "vegetable" -> getDrawableResource("vegetable", R.drawable.vegetable)
+                "meat" -> getDrawableResource("meat", R.drawable.meat)
+                "bakery" -> getDrawableResource("breads", R.drawable.breads)
+                "frozen" -> getDrawableResource("frozen", R.drawable.frozen)
+                "beverages" -> getDrawableResource("beverages", R.drawable.beverages)
+                "cereals" -> getDrawableResource("cereals", R.drawable.cereals)
+                "sweets" -> getDrawableResource("sweets", R.drawable.sweets)
+                else -> getDrawableResource("grocery", R.drawable.ic_grocery)
             }
 
             itemIcon.setImageResource(iconRes)

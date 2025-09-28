@@ -47,4 +47,23 @@
 
     <color name="red_400">#F87171</color>
     <color name="red_600">#DC2626</color>
+
+    <!-- Add these colors to your res/values/colors.xml -->
+
+    <!-- GS1 specific colors -->
+    <color name="gs1_primary">#FF4285F4</color>
+    <color name="gs1_text">#FF1565C0</color>
+    <color name="gs1_background">#FFF0F8FF</color>
+    <color name="gs1_border">#FF4285F4</color>
+
+    <!-- Enhanced primary colors if not already present -->
+    <color name="primary">#FF2196F3</color>
+    <color name="primary_dark">#FF1976D2</color>
+    <color name="primary_light">#FFBBDEFB</color>
+
+    <!-- Status colors for different data sources -->
+    <color name="status_fresh">#FF4CAF50</color>
+    <color name="status_warning">#FFFF9800</color>
+    <color name="status_error">#FFF44336</color>
+    <color name="status_info">#FF2196F3</color>
 </resources>

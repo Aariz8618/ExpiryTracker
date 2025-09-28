@@ -6,13 +6,16 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.FirebaseAuth
@@ -32,13 +35,30 @@ class AddItemActivity : AppCompatActivity() {
     private lateinit var saveButton: LinearLayout
     private lateinit var loadingOverlay: View
     private lateinit var progressBar: ProgressBar
+    private lateinit var productImageView: ImageView
+    private lateinit var barcodeInfoLayout: LinearLayout
+    private lateinit var barcodeText: TextView
+    private lateinit var gs1InfoLayout: LinearLayout
+    private lateinit var gs1InfoText: TextView
 
     private var selectedCategory: String = ""
     private var selectedPurchaseDate: String = ""
     private var selectedExpiryDate: String = ""
+    private var scannedBarcode: String = ""
+    private var productImageUrl: String = ""
+    private var isGS1Code: Boolean = false
 
     private lateinit var firestoreRepository: FirestoreRepository
     private lateinit var auth: FirebaseAuth
+
+    // Activity Result Launcher for barcode scanner
+    private val barcodeScannerLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK && result.data != null) {
+            handleBarcodeResult(result.data!!)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,7 +93,6 @@ class AddItemActivity : AppCompatActivity() {
                 firestoreRepository.createUserProfile(user)
             } catch (e: Exception) {
                 Log.e("AddItemActivity", "Error creating user profile: ${e.message}")
-                // Don't show error to user as this is not critical for adding items
             }
         }
     }
@@ -87,6 +106,11 @@ class AddItemActivity : AppCompatActivity() {
         saveButton = findViewById(R.id.button_save_item)
         loadingOverlay = findViewById(R.id.loading_overlay)
         progressBar = findViewById(R.id.progress_bar)
+        productImageView = findViewById(R.id.product_image_view)
+        barcodeInfoLayout = findViewById(R.id.barcode_info_layout)
+        barcodeText = findViewById(R.id.barcode_text)
+        gs1InfoLayout = findViewById(R.id.gs1_info_layout)
+        gs1InfoText = findViewById(R.id.gs1_info_text)
     }
 
     private fun setupClickListeners() {
@@ -116,13 +140,228 @@ class AddItemActivity : AppCompatActivity() {
             showDatePicker(false)
         }
 
+        // Main barcode scanner button
         findViewById<LinearLayout>(R.id.button_scan).setOnClickListener {
-            Toast.makeText(this, "Barcode scanning not implemented yet", Toast.LENGTH_SHORT).show()
+            launchBarcodeScanner()
         }
 
         saveButton.setOnClickListener {
             saveItemToFirestore()
         }
+
+        // Clear barcode info
+        findViewById<ImageView>(R.id.clear_barcode_button).setOnClickListener {
+            clearBarcodeInfo()
+        }
+    }
+
+    private fun launchBarcodeScanner() {
+        val intent = Intent(this, BarcodeScannerActivity::class.java)
+        barcodeScannerLauncher.launch(intent)
+    }
+
+    private fun handleBarcodeResult(data: Intent) {
+        val barcode = data.getStringExtra("barcode") ?: ""
+        val originalData = data.getStringExtra("original_data") ?: ""
+        val barcodeFormat = data.getStringExtra("barcode_format") ?: ""
+        val isGS1 = data.getBooleanExtra("is_gs1", false)
+
+        // GS1 specific data
+        val gs1ExpiryDate = data.getStringExtra("gs1_expiry_date") ?: ""
+        val gs1BatchLot = data.getStringExtra("gs1_batch_lot") ?: ""
+        val gs1SerialNumber = data.getStringExtra("gs1_serial_number") ?: ""
+        val gs1ProductionDate = data.getStringExtra("gs1_production_date") ?: ""
+        val gs1BestBeforeDate = data.getStringExtra("gs1_best_before_date") ?: ""
+        val gs1GTIN = data.getStringExtra("gs1_gtin") ?: ""
+
+        // Product lookup results
+        val productFound = data.getBooleanExtra("product_found", false)
+        val productName = data.getStringExtra("product_name") ?: ""
+        val brands = data.getStringExtra("brands") ?: ""
+        val suggestedCategory = data.getStringExtra("suggested_category") ?: ""
+        val imageUrl = data.getStringExtra("image_url") ?: ""
+        val dataSource = data.getStringExtra("data_source") ?: ""
+        val isOfflineData = data.getBooleanExtra("is_offline_data", false)
+
+        val productNotFound = data.getBooleanExtra("product_not_found", false)
+        val lookupFailed = data.getBooleanExtra("lookup_failed", false)
+        val lookupError = data.getStringExtra("lookup_error") ?: ""
+
+        // Store the data
+        scannedBarcode = barcode
+        productImageUrl = imageUrl
+        isGS1Code = isGS1
+
+        // Show barcode info
+        displayBarcodeInfo(barcode, originalData, barcodeFormat)
+
+        // Show GS1 info if available
+        if (isGS1) {
+            displayGS1Info(gs1ExpiryDate, gs1BatchLot, gs1SerialNumber, gs1ProductionDate, gs1BestBeforeDate, gs1GTIN)
+        }
+
+        // Load product image if available
+        if (imageUrl.isNotEmpty()) {
+            productImageView.visibility = View.VISIBLE
+            Glide.with(this)
+                .load(imageUrl)
+                .placeholder(android.R.drawable.ic_menu_gallery)
+                .error(android.R.drawable.ic_menu_gallery)
+                .into(productImageView)
+        } else {
+            productImageView.visibility = View.GONE
+        }
+
+        // Handle different scenarios
+        when {
+            // GS1 with expiry date - auto-fill expiry
+            isGS1 && gs1ExpiryDate.isNotEmpty() -> {
+                selectedExpiryDate = gs1ExpiryDate
+                textExpiryDate.text = selectedExpiryDate
+                textExpiryDate.setTextColor(getColor(R.color.gray_800))
+
+                if (productFound && productName.isNotEmpty()) {
+                    // Both expiry and product info available
+                    populateProductInfo(productName, brands, suggestedCategory, dataSource, isOfflineData)
+                    showSuccessMessage("GS1 code scanned! Expiry date and product info loaded.")
+                } else {
+                    // Only expiry available
+                    inputName.requestFocus()
+                    showSuccessMessage("GS1 code scanned! Expiry date loaded. Please enter product name.")
+                }
+            }
+
+            // GS1 without expiry date
+            isGS1 -> {
+                if (productFound && productName.isNotEmpty()) {
+                    populateProductInfo(productName, brands, suggestedCategory, dataSource, isOfflineData)
+                    showSuccessMessage("GS1 code scanned! Product info loaded. Please set expiry date.")
+                } else {
+                    inputName.requestFocus()
+                    showInfoMessage("GS1 code scanned! Please enter product details and expiry date.")
+                }
+            }
+
+            // Regular barcode with product found
+            productFound && productName.isNotEmpty() -> {
+                populateProductInfo(productName, brands, suggestedCategory, dataSource, isOfflineData)
+                showSuccessMessage("Barcode scanned! Product information loaded.")
+            }
+
+            // Product not found
+            productNotFound -> {
+                inputName.requestFocus()
+                showInfoMessage("Barcode scanned but product not found. Please enter details manually.")
+            }
+
+            // Lookup failed
+            lookupFailed -> {
+                inputName.requestFocus()
+                showWarningMessage("Barcode scanned but lookup failed: $lookupError. Please enter details manually.")
+            }
+
+            // Default case
+            else -> {
+                inputName.requestFocus()
+                showInfoMessage("Barcode scanned but unable to enter details. Please enter product details manually.")
+            }
+        }
+    }
+
+    private fun displayBarcodeInfo(barcode: String, originalData: String, format: String) {
+        barcodeInfoLayout.visibility = View.VISIBLE
+        val displayData = if (originalData != barcode && originalData.isNotEmpty()) {
+            "Barcode: $barcode\nOriginal: $originalData\nFormat: $format"
+        } else {
+            "Barcode: $barcode\nFormat: $format"
+        }
+        barcodeText.text = displayData
+    }
+
+    private fun displayGS1Info(expiryDate: String, batchLot: String, serialNumber: String,
+                               productionDate: String, bestBeforeDate: String, gtin: String) {
+        val gs1Info = mutableListOf<String>()
+
+        if (expiryDate.isNotEmpty()) gs1Info.add("Expiry: $expiryDate")
+        if (bestBeforeDate.isNotEmpty() && bestBeforeDate != expiryDate) gs1Info.add("Best Before: $bestBeforeDate")
+        if (productionDate.isNotEmpty()) gs1Info.add("Production: $productionDate")
+        if (batchLot.isNotEmpty()) gs1Info.add("Batch: $batchLot")
+        if (serialNumber.isNotEmpty()) gs1Info.add("Serial: $serialNumber")
+        if (gtin.isNotEmpty()) gs1Info.add("GTIN: $gtin")
+
+        if (gs1Info.isNotEmpty()) {
+            gs1InfoLayout.visibility = View.VISIBLE
+            gs1InfoText.text = "GS1 Data:\n${gs1Info.joinToString("\n")}"
+        } else {
+            gs1InfoLayout.visibility = View.GONE
+        }
+    }
+
+    private fun populateProductInfo(productName: String, brands: String, suggestedCategory: String,
+                                    dataSource: String, isOfflineData: Boolean) {
+        // Populate product name
+        val fullName = if (brands.isNotEmpty()) "$productName ($brands)" else productName
+        inputName.setText(fullName)
+
+        // Populate category if suggested
+        if (suggestedCategory.isNotEmpty() && suggestedCategory != "Other") {
+            selectedCategory = suggestedCategory
+            textCategory.text = selectedCategory
+            textCategory.setTextColor(getColor(R.color.gray_800))
+        }
+
+        // Show data source info if offline
+        if (isOfflineData) {
+            showInfoMessage("Product info loaded from cache (offline mode)")
+        }
+    }
+
+    private fun showSuccessMessage(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    }
+
+    private fun showInfoMessage(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    }
+
+    private fun showWarningMessage(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    }
+
+    private fun clearBarcodeInfo() {
+        scannedBarcode = ""
+        productImageUrl = ""
+        isGS1Code = false
+        barcodeInfoLayout.visibility = View.GONE
+        gs1InfoLayout.visibility = View.GONE
+        productImageView.visibility = View.GONE
+
+        // Optionally clear the populated fields
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Clear Scanned Data")
+            .setMessage("Do you want to clear all the scanned information as well?")
+            .setPositiveButton("Yes") { _, _ ->
+                inputName.setText("")
+                selectedCategory = ""
+                textCategory.text = "Select Category"
+                textCategory.setTextColor(getColor(R.color.gray_600))
+
+                // Don't clear expiry date if it came from GS1 - user might want to keep it
+                if (isGS1Code) {
+                    MaterialAlertDialogBuilder(this)
+                        .setTitle("Keep Expiry Date?")
+                        .setMessage("This expiry date was extracted from the GS1 code. Do you want to keep it?")
+                        .setPositiveButton("Keep") { _, _ -> }
+                        .setNegativeButton("Clear") { _, _ ->
+                            selectedExpiryDate = ""
+                            textExpiryDate.text = "mm/dd/yyyy"
+                            textExpiryDate.setTextColor(getColor(R.color.gray_600))
+                        }
+                        .show()
+                }
+            }
+            .setNegativeButton("No", null)
+            .show()
     }
 
     private fun setupInitialValues() {
@@ -131,10 +370,15 @@ class AddItemActivity : AppCompatActivity() {
         textPurchaseDate.text = currentDate
         selectedPurchaseDate = currentDate
         textPurchaseDate.setTextColor(getColor(R.color.gray_800))
+
+        // Hide info layouts initially
+        barcodeInfoLayout.visibility = View.GONE
+        gs1InfoLayout.visibility = View.GONE
+        productImageView.visibility = View.GONE
     }
 
     private fun showCategoryDialog() {
-        val categories = arrayOf("Dairy", "Meat", "Vegetables", "Fruits", "Bakery", "Frozen", "Pantry", "Other")
+        val categories = arrayOf("Dairy", "Meat", "Vegetables", "Fruits", "Bakery", "Frozen" , "Beverages", "Cereals" , "Sweets" , "Other")
         MaterialAlertDialogBuilder(this)
             .setTitle("Select Category")
             .setItems(categories) { _, which ->
@@ -209,6 +453,9 @@ class AddItemActivity : AppCompatActivity() {
             quantity = quantity,
             status = status,
             daysLeft = daysLeft,
+            barcode = scannedBarcode,
+            imageUrl = productImageUrl,
+            isGS1 = isGS1Code,
             createdAt = now,
             updatedAt = now
         )
@@ -279,7 +526,8 @@ class AddItemActivity : AppCompatActivity() {
         return inputName.text.toString().trim().isNotEmpty() ||
                 selectedCategory.isNotEmpty() ||
                 selectedExpiryDate.isNotEmpty() ||
-                quantity != 1
+                quantity != 1 ||
+                scannedBarcode.isNotEmpty()
     }
 
     private fun showDiscardChangesDialog() {
