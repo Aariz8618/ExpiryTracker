@@ -48,11 +48,21 @@ class GroceryAdapter(
 
             // Set status badge text, colors, and indicator based on status
             when (item.status) {
+                "used" -> {
+                    statusBadge.text = "Used ✓"
+                    statusBadge.setTextColor(ContextCompat.getColor(itemView.context, android.R.color.white))
+                    statusBadge.setBackgroundResource(R.drawable.status_badge_fresh)
+                    statusIndicator.setBackgroundColor(ContextCompat.getColor(itemView.context, R.color.green_500))
+                    // Set card background to light green for used items
+                    cardView.setCardBackgroundColor(ContextCompat.getColor(itemView.context, R.color.green_50))
+                }
                 "expired" -> {
                     statusBadge.text = "Expired"
                     statusBadge.setTextColor(ContextCompat.getColor(itemView.context, android.R.color.white))
                     statusBadge.setBackgroundResource(R.drawable.status_badge_expired)
                     statusIndicator.setBackgroundColor(ContextCompat.getColor(itemView.context, R.color.red_500))
+                    // Reset card background
+                    cardView.setCardBackgroundColor(ContextCompat.getColor(itemView.context, android.R.color.white))
                 }
                 "expiring" -> {
                     val daysText = when {
@@ -65,12 +75,16 @@ class GroceryAdapter(
                     statusBadge.setTextColor(ContextCompat.getColor(itemView.context, android.R.color.white))
                     statusBadge.setBackgroundResource(R.drawable.status_badge_expiring)
                     statusIndicator.setBackgroundColor(ContextCompat.getColor(itemView.context, R.color.orange_500))
+                    // Reset card background
+                    cardView.setCardBackgroundColor(ContextCompat.getColor(itemView.context, android.R.color.white))
                 }
                 else -> { // "fresh"
                     statusBadge.text = "Fresh (${item.daysLeft} days left)"
                     statusBadge.setTextColor(ContextCompat.getColor(itemView.context, android.R.color.white))
                     statusBadge.setBackgroundResource(R.drawable.status_badge_fresh)
                     statusIndicator.setBackgroundColor(ContextCompat.getColor(itemView.context, R.color.green_500))
+                    // Reset card background
+                    cardView.setCardBackgroundColor(ContextCompat.getColor(itemView.context, android.R.color.white))
                 }
             }
 
@@ -99,6 +113,7 @@ class GroceryAdapter(
 
             // Set icon tint based on status for visual hierarchy
             val tintColor = when (status) {
+                "used" -> R.color.green_400
                 "expired" -> R.color.red_400
                 "expiring" -> R.color.orange_400
                 else -> R.color.green_400

@@ -50,6 +50,11 @@
             android:name=".ItemDetailActivity"
             android:exported="false" />
         <activity
+            android:name=".EditItemActivity"
+            android:exported="false"
+            android:label="Edit Item"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
             android:name=".AddItemActivity"
             android:exported="false" />
         <activity

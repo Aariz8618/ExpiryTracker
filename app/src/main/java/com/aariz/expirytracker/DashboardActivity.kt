@@ -43,6 +43,21 @@ class DashboardActivity : AppCompatActivity() {
         }
     }
 
+    private val itemDetailLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            // Check if item was updated or deleted
+            val itemUpdated = result.data?.getBooleanExtra("item_updated", false) ?: false
+            val itemDeleted = result.data?.getBooleanExtra("item_deleted", false) ?: false
+
+            if (itemUpdated || itemDeleted) {
+                // Reload items to reflect changes
+                loadGroceryItems()
+            }
+        }
+    }
+
     private val profileLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -122,8 +137,11 @@ class DashboardActivity : AppCompatActivity() {
                 putExtra("quantity", item.quantity)
                 putExtra("status", item.status)
                 putExtra("daysLeft", item.daysLeft)
+                putExtra("barcode", item.barcode)
+                putExtra("imageUrl", item.imageUrl)
+                putExtra("isGS1", item.isGS1)
             }
-            startActivity(intent)
+            itemDetailLauncher.launch(intent)
         }
 
         recyclerView.adapter = adapter
