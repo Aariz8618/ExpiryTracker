@@ -1,0 +1,38 @@
+<!-- Simple clock face with tick marks -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Outer circle -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10s10,-4.48 10,-10S17.52,2 12,2z
+                         M12,20c-4.41,0 -8,-3.59 -8,-8s3.59,-8 8,-8s8,3.59 8,8S16.41,20 12,20z"/>
+
+    <!-- 12 o'clock mark -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M11.5,5h1v2h-1z"/>
+
+    <!-- 3 o'clock mark -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M17,11.5h2v1h-2z"/>
+
+    <!-- 6 o'clock mark -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M11.5,17h1v2h-1z"/>
+
+    <!-- 9 o'clock mark -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M5,11.5h2v1H5z"/>
+
+    <!-- Center dot -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,11.2 A0.8,0.8 0 1,1 12,12.8 A0.8,0.8 0 1,1 12,11.2z"/>
+</vector>

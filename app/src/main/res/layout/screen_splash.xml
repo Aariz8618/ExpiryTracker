@@ -1,75 +1,206 @@
 <!-- screen_splash.xml -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
     android:background="@drawable/gradient_background">
 
-    <!-- Logo Container -->
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        app:cardCornerRadius="60dp"
-        app:cardElevation="8dp"
-        app:cardBackgroundColor="@color/white"
-        android:layout_marginBottom="32dp">
-
-        <!-- Shopping Cart Icon with Green Color -->
-        <ImageView
-            android:id="@+id/image_logo"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_gravity="center"
-            android:contentDescription="@string/app_name"
-            app:tint="#4CAF50" />
-    </com.google.android.material.card.MaterialCardView>
-
-    <!-- App Title -->
-    <TextView
-        android:id="@+id/text_app_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/app_name"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:textColor="#4CAF50"
-        android:gravity="center"
-        android:layout_marginBottom="8dp"
-        android:fontFamily="sans-serif-medium" />
-
-    <!-- Subtitle -->
-    <TextView
-        android:id="@+id/text_subtitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Save More, Waste Less"
-        android:textSize="16sp"
-        android:textColor="#666666"
-        android:gravity="center"
-        android:layout_marginBottom="48dp"
-        android:fontFamily="sans-serif" />
-
-    <!-- Loading Progress -->
-    <ProgressBar
-        android:id="@+id/progress_loading"
-        style="@android:style/Widget.ProgressBar.Horizontal"
+    <!-- Decorative circles in background -->
+    <View
+        android:id="@+id/circle_1"
         android:layout_width="200dp"
-        android:layout_height="4dp"
-        android:indeterminate="true"
-        android:indeterminateTint="#4CAF50"
-        android:layout_marginBottom="16dp" />
+        android:layout_height="200dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="-100dp"
+        android:layout_marginEnd="-100dp"
+        android:background="@drawable/circle_bg_1"
+        android:alpha="0.3" />
 
-    <!-- Loading Text -->
+    <View
+        android:id="@+id/circle_2"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="-75dp"
+        android:layout_marginStart="-75dp"
+        android:background="@drawable/circle_bg_2"
+        android:alpha="0.3" />
+
+    <!-- Main Content Container -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="32dp">
+
+        <!-- Modern Logo Container with Shadow (Circular) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/logo_card"
+            android:layout_width="140dp"
+            android:layout_height="140dp"
+            app:cardCornerRadius="70dp"
+            app:cardElevation="20dp"
+            android:layout_marginBottom="40dp"
+            app:cardBackgroundColor="#FFFFFF">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <!-- Gradient overlay for modern look -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/logo_gradient_overlay"
+                    android:alpha="0.1" />
+
+                <!-- Logo Icon (No rotation) -->
+                <ImageView
+                    android:id="@+id/image_logo"
+                    android:layout_width="180dp"
+                    android:layout_height="180dp"
+                    android:layout_centerInParent="true"
+                    android:src="@mipmap/ic_launcher"
+                    android:contentDescription="@string/app_name"
+                    android:scaleType="fitCenter" />
+
+            </RelativeLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- App Name with Modern Typography -->
+        <TextView
+            android:id="@+id/text_app_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="@color/green_primary"
+            android:gravity="center"
+            android:letterSpacing="0.05"
+            android:layout_marginBottom="12dp"
+            android:fontFamily="sans-serif-medium"
+            android:shadowColor="#40000000"
+            android:shadowDx="0"
+            android:shadowDy="4"
+            android:shadowRadius="8"
+            android:alpha="0" />
+
+        <!-- Modern Subtitle with Icon -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="60dp">
+
+            <TextView
+                android:id="@+id/text_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Save More, Waste Less"
+                android:textSize="16sp"
+                android:textColor="@color/gray_400"
+                android:gravity="center"
+                android:fontFamily="sans-serif-light"
+                android:letterSpacing="0.08"
+                android:alpha="0" />
+
+        </LinearLayout>
+
+        <!-- Animated Clock Loading Indicator -->
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <!-- Clock Container with circular background -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/clock_container"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                app:cardCornerRadius="30dp"
+                app:cardBackgroundColor="@color/green_400"
+                android:alpha="0">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="12dp">
+
+                    <!-- Clock Face (static) -->
+                    <View
+                        android:id="@+id/clock_face"
+                        android:layout_width="60dp"
+                        android:layout_height="60dp"
+                        android:background="@drawable/clock_face" />
+
+                    <!-- Rotating Clock Hands -->
+                    <ImageView
+                        android:id="@+id/clock_hands"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:src="@drawable/clock_hands"
+                        android:contentDescription="Loading"
+                        android:scaleType="fitCenter" />
+
+                </RelativeLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </RelativeLayout>
+
+        <!-- Loading Text -->
+        <TextView
+            android:id="@+id/text_loading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Loading your experience..."
+            android:textSize="13sp"
+            android:textColor="#B0FFFFFF"
+            android:gravity="center"
+            android:fontFamily="sans-serif-light"
+            android:letterSpacing="0.1"
+            android:layout_marginTop="24dp"
+            android:alpha="0" />
+
+    </LinearLayout>
+
+    <!-- Version Info at Bottom -->
     <TextView
-        android:id="@+id/text_loading"
+        android:id="@+id/text_version"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Loading..."
-        android:textSize="14sp"
-        android:textColor="#999999"
-        android:gravity="center"
-        android:fontFamily="sans-serif" />
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="32dp"
+        android:text="v1.0.0"
+        android:textSize="11sp"
+        android:textColor="#80FFFFFF"
+        android:fontFamily="sans-serif-light"
+        android:alpha="0" />
 
-</LinearLayout>
+    <!-- Hidden tags (not used in modern design) -->
+    <TextView
+        android:id="@+id/tag_1"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tag_2"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tag_3"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
+
+</RelativeLayout>
