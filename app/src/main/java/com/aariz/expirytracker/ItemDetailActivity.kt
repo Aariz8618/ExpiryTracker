@@ -3,15 +3,23 @@ package com.aariz.expirytracker
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.View
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.card.MaterialCardView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
+import java.util.concurrent.TimeUnit
 
 class ItemDetailActivity : AppCompatActivity() {
 
@@ -19,6 +27,24 @@ class ItemDetailActivity : AppCompatActivity() {
     private lateinit var loadingOverlay: View
     private lateinit var progressBar: ProgressBar
     private var itemId: String = ""
+
+    // Countdown timer views
+    private lateinit var countdownDays: TextView
+    private lateinit var countdownHours: TextView
+    private lateinit var countdownMinutes: TextView
+    private lateinit var countdownSection: LinearLayout
+    private lateinit var statusChip: TextView
+    private lateinit var statusText: TextView
+    private lateinit var itemIcon: ImageView
+
+    // Timeline views
+    private lateinit var timelinePurchaseDot: View
+    private lateinit var timelineExpiryDot: View
+    private lateinit var timelineProgress: View
+    private lateinit var timelineLine: View
+
+    private val handler = Handler(Looper.getMainLooper())
+    private var countdownRunnable: Runnable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,6 +55,21 @@ class ItemDetailActivity : AppCompatActivity() {
         // Initialize loading views
         loadingOverlay = findViewById(R.id.loading_overlay)
         progressBar = findViewById(R.id.progress_bar)
+
+        // Initialize countdown views
+        countdownDays = findViewById(R.id.text_countdown_days)
+        countdownHours = findViewById(R.id.text_countdown_hours)
+        countdownMinutes = findViewById(R.id.text_countdown_minutes)
+        countdownSection = findViewById(R.id.countdown_section)
+        statusChip = findViewById(R.id.text_status_chip)
+        statusText = findViewById(R.id.text_status)
+        itemIcon = findViewById(R.id.img_item_icon)
+
+        // Initialize timeline views
+        timelinePurchaseDot = findViewById(R.id.timeline_purchase_dot)
+        timelineExpiryDot = findViewById(R.id.timeline_expiry_dot)
+        timelineProgress = findViewById(R.id.timeline_progress)
+        timelineLine = findViewById(R.id.timeline_line)
 
         itemId = intent.getStringExtra("id") ?: ""
         val name = intent.getStringExtra("name") ?: ""
@@ -45,48 +86,172 @@ class ItemDetailActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.text_purchase).text = purchase
         findViewById<TextView>(R.id.text_quantity).text = quantity.toString()
 
-        val statusChip = findViewById<TextView>(R.id.text_status_chip)
-        updateStatusChip(statusChip, status, daysLeft)
-
+        setItemIcon(category)
+        updateStatusDisplay(status, daysLeft)
+        updateTimelineVisuals(purchase, expiry, status)
+        startCountdownTimer(expiry, status)
         setupClickListeners()
     }
 
-    private fun updateStatusChip(statusChip: TextView, status: String, daysLeft: Int) {
+    private fun setItemIcon(category: String) {
+        val iconRes = when (category.lowercase()) {
+            "fruits", "fruit" -> R.drawable.fruits
+            "dairy" -> R.drawable.milk
+            "vegetables", "vegetable" -> R.drawable.vegetables
+            "meat" -> R.drawable.meat
+            "bakery" -> R.drawable.bread
+            "frozen" -> R.drawable.frozen
+            "beverages" -> R.drawable.beverages
+            "cereals" -> R.drawable.cereals
+            "sweets" -> R.drawable.sweets
+            else -> R.drawable.ic_grocery
+        }
+        itemIcon.setImageResource(iconRes)
+    }
+
+    private fun updateStatusDisplay(status: String, daysLeft: Int) {
         when (status) {
             "fresh" -> {
                 statusChip.text = "Fresh ($daysLeft days left)"
-                statusChip.setBackgroundResource(R.drawable.chip_green)
                 statusChip.setTextColor(Color.parseColor("#2E7D32"))
+                statusText.text = "Fresh"
+                statusText.setTextColor(Color.parseColor("#2E7D32"))
             }
             "expiring" -> {
                 val daysLabel = if (daysLeft == 1) "1 day" else "$daysLeft days"
                 statusChip.text = "Expires in $daysLabel"
-                statusChip.setBackgroundResource(R.drawable.chip_yellow)
-                statusChip.setTextColor(Color.parseColor("#8D6E00"))
+                statusChip.setTextColor(Color.parseColor("#F57C00"))
+                statusText.text = "Expiring"
+                statusText.setTextColor(Color.parseColor("#F57C00"))
             }
             "expired" -> {
                 statusChip.text = "Expired"
-                statusChip.setBackgroundResource(R.drawable.chip_red)
                 statusChip.setTextColor(Color.parseColor("#B71C1C"))
+                statusText.text = "Expired"
+                statusText.setTextColor(Color.parseColor("#B71C1C"))
             }
             "used" -> {
                 statusChip.text = "Used ✓"
-                statusChip.setBackgroundResource(R.drawable.chip_green)
                 statusChip.setTextColor(Color.parseColor("#2E7D32"))
+                statusText.text = "Used ✓"
+                statusText.setTextColor(Color.parseColor("#2E7D32"))
             }
         }
     }
 
+    private fun updateTimelineVisuals(purchaseDateStr: String, expiryDateStr: String, status: String) {
+        try {
+            val sdf = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+            val purchaseDate = sdf.parse(purchaseDateStr)
+            val expiryDate = sdf.parse(expiryDateStr)
+            val now = Calendar.getInstance().time
+
+            if (purchaseDate != null && expiryDate != null) {
+                val totalDuration = expiryDate.time - purchaseDate.time
+                val elapsed = now.time - purchaseDate.time
+                val progress = (elapsed.toFloat() / totalDuration.toFloat()).coerceIn(0f, 1f)
+
+                // Update progress bar height
+                val lineHeight = timelineLine.layoutParams.height
+                val progressHeight = (lineHeight * progress).toInt()
+                timelineProgress.layoutParams.height = progressHeight
+                timelineProgress.requestLayout()
+
+                // Update colors based on status
+                when (status) {
+                    "fresh" -> {
+                        timelineProgress.setBackgroundColor(Color.parseColor("#4CAF50"))
+                    }
+                    "expiring" -> {
+                        timelineProgress.setBackgroundColor(Color.parseColor("#FF9800"))
+                    }
+                    "expired" -> {
+                        timelineProgress.setBackgroundColor(Color.parseColor("#F44336"))
+                        timelineExpiryDot.setBackgroundResource(R.drawable.circle_icon_bg)
+                    }
+                    "used" -> {
+                        timelineProgress.setBackgroundColor(Color.parseColor("#4CAF50"))
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun startCountdownTimer(expiryDateStr: String, status: String) {
+        // Hide countdown for expired or used items
+        if (status == "expired" || status == "used") {
+            countdownSection.visibility = View.GONE
+            return
+        }
+
+        countdownSection.visibility = View.VISIBLE
+
+        countdownRunnable = object : Runnable {
+            override fun run() {
+                try {
+                    val sdf = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+                    val expiryDate = sdf.parse(expiryDateStr)
+
+                    if (expiryDate != null) {
+                        val now = Calendar.getInstance().time
+                        val diffInMillis = expiryDate.time - now.time
+
+                        if (diffInMillis <= 0) {
+                            // Expired
+                            countdownDays.text = "00"
+                            countdownHours.text = "00"
+                            countdownMinutes.text = "00"
+                            countdownSection.visibility = View.GONE
+                            return
+                        }
+
+                        val days = TimeUnit.MILLISECONDS.toDays(diffInMillis)
+                        val hours = TimeUnit.MILLISECONDS.toHours(diffInMillis) % 24
+                        val minutes = TimeUnit.MILLISECONDS.toMinutes(diffInMillis) % 60
+
+                        countdownDays.text = String.format("%02d", days)
+                        countdownHours.text = String.format("%02d", hours)
+                        countdownMinutes.text = String.format("%02d", minutes)
+
+                        // Update color based on time remaining
+                        val color = when {
+                            days < 1 -> Color.parseColor("#B71C1C") // Red
+                            days <= 3 -> Color.parseColor("#F57C00") // Orange
+                            else -> Color.parseColor("#2E7D32") // Green
+                        }
+                        countdownDays.setTextColor(color)
+                        countdownHours.setTextColor(color)
+                        countdownMinutes.setTextColor(color)
+
+                        // Schedule next update in 1 minute
+                        handler.postDelayed(this, 60000)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+
+        // Start the countdown
+        countdownRunnable?.let { handler.post(it) }
+    }
+
     private fun setupClickListeners() {
-        findViewById<LinearLayout>(R.id.button_edit).setOnClickListener {
+        findViewById<MaterialButton>(R.id.btn_back).setOnClickListener {
+            finish()
+        }
+
+        findViewById<MaterialCardView>(R.id.button_edit).setOnClickListener {
             editItem()
         }
 
-        findViewById<LinearLayout>(R.id.button_mark_used).setOnClickListener {
+        findViewById<MaterialCardView>(R.id.button_mark_used).setOnClickListener {
             showMarkAsUsedConfirmation()
         }
 
-        findViewById<LinearLayout>(R.id.button_delete).setOnClickListener {
+        findViewById<MaterialCardView>(R.id.button_delete).setOnClickListener {
             showDeleteConfirmation()
         }
     }
@@ -105,7 +270,7 @@ class ItemDetailActivity : AppCompatActivity() {
             putExtra("isGS1", getIntent().getBooleanExtra("isGS1", false))
         }
         startActivity(intent)
-        finish() // Close detail screen so we return to dashboard after edit
+        finish()
     }
 
     private fun showMarkAsUsedConfirmation() {
@@ -129,7 +294,6 @@ class ItemDetailActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                // Create updated item with "used" status
                 val updatedItem = GroceryItem(
                     id = itemId,
                     name = intent.getStringExtra("name") ?: "",
@@ -142,8 +306,8 @@ class ItemDetailActivity : AppCompatActivity() {
                     barcode = intent.getStringExtra("barcode") ?: "",
                     imageUrl = intent.getStringExtra("imageUrl") ?: "",
                     isGS1 = intent.getBooleanExtra("isGS1", false),
-                    createdAt = java.util.Date(),
-                    updatedAt = java.util.Date()
+                    createdAt = Date(),
+                    updatedAt = Date()
                 )
 
                 val result = firestoreRepository.updateGroceryItem(updatedItem)
@@ -151,7 +315,6 @@ class ItemDetailActivity : AppCompatActivity() {
 
                 if (result.isSuccess) {
                     Toast.makeText(this@ItemDetailActivity, "Item marked as used!", Toast.LENGTH_SHORT).show()
-                    // Return to dashboard with success flag
                     setResult(RESULT_OK, Intent().apply {
                         putExtra("item_updated", true)
                     })
@@ -200,7 +363,6 @@ class ItemDetailActivity : AppCompatActivity() {
 
                 if (result.isSuccess) {
                     Toast.makeText(this@ItemDetailActivity, "Item deleted successfully!", Toast.LENGTH_SHORT).show()
-                    // Return to dashboard with success flag
                     setResult(RESULT_OK, Intent().apply {
                         putExtra("item_deleted", true)
                     })
@@ -226,5 +388,11 @@ class ItemDetailActivity : AppCompatActivity() {
     private fun showLoading(show: Boolean) {
         loadingOverlay.visibility = if (show) View.VISIBLE else View.GONE
         progressBar.visibility = if (show) View.VISIBLE else View.GONE
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Stop the countdown timer
+        countdownRunnable?.let { handler.removeCallbacks(it) }
     }
 }

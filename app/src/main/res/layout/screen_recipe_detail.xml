@@ -1,81 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- screen_recipe_detail.xml -->
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/gray_50">
 
-    <!-- App Bar with Image -->
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/app_bar"
+    <!-- App Bar -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/top_bar"
         android:layout_width="match_parent"
-        android:layout_height="280dp"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
-
-        <com.google.android.material.appbar.CollapsingToolbarLayout
-            android:id="@+id/collapsing_toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed"
-            app:contentScrim="@color/green_primary"
-            app:expandedTitleMarginStart="16dp"
-            app:expandedTitleMarginBottom="16dp">
-
-            <ImageView
-                android:id="@+id/image_recipe_header"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:src="@color/red_chip_bg"
-                app:layout_collapseMode="parallax" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/gradient_overlay" />
-
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                app:layout_collapseMode="pin"
-                app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/button_back"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    app:icon="@drawable/left_arrow"
-                    app:iconTint="@color/white"
-                    app:iconSize="24dp"
-                    style="@style/Widget.Material3.Button.IconButton" />
-
-            </androidx.appcompat.widget.Toolbar>
-
-        </com.google.android.material.appbar.CollapsingToolbarLayout>
-
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <!-- Main Content -->
-    <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        app:cardCornerRadius="0dp"
+        app:cardElevation="2dp"
+        app:cardBackgroundColor="@color/white">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="24dp"
+            android:paddingBottom="8dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="16dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_back"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                app:icon="@drawable/left_arrow"
+                app:iconTint="@color/green_primary"
+                app:iconSize="20dp"
+                style="@style/Widget.Material3.Button.IconButton" />
+
+            <TextView
+                android:id="@+id/text_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Recipe Details"
+                android:textStyle="bold"
+                android:textSize="22sp"
+                android:textColor="@color/black"
+                android:layout_marginLeft="4dp" />
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Main Content -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/top_bar"
+        android:layout_above="@id/bottom_bar"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="16dp">
 
             <!-- Title Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="-32dp"
-                android:layout_marginHorizontal="16dp"
+                android:layout_margin="16dp"
                 app:cardCornerRadius="20dp"
                 app:cardElevation="8dp"
                 app:cardBackgroundColor="@color/white">
@@ -217,30 +211,60 @@
                         android:orientation="horizontal"
                         android:gravity="center">
 
-                        <com.google.android.material.button.MaterialButton
+                        <LinearLayout
                             android:id="@+id/button_save"
                             android:layout_width="0dp"
                             android:layout_weight="1"
                             android:layout_height="48dp"
-                            android:text="Save"
-                            android:textSize="14sp"
-                            app:icon="@drawable/ic_bookmark"
-                            app:iconSize="20dp"
+                            android:orientation="horizontal"
+                            android:gravity="center"
                             android:layout_marginEnd="8dp"
-                            app:cornerRadius="12dp"
-                            style="@style/Widget.Material3.Button.OutlinedButton" />
+                            android:background="@drawable/bg_outline_button"
+                            android:clickable="true"
+                            android:focusable="true">
 
-                        <com.google.android.material.button.MaterialButton
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_bookmark"
+                                app:tint="@color/green_primary"
+                                android:layout_marginEnd="8dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Save"
+                                android:textSize="14sp"
+                                android:textColor="@color/green_primary" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
                             android:id="@+id/button_share"
                             android:layout_width="0dp"
                             android:layout_weight="1"
                             android:layout_height="48dp"
-                            android:text="Share"
-                            android:textSize="14sp"
-                            app:icon="@drawable/ic_share"
-                            app:iconSize="20dp"
-                            app:cornerRadius="12dp"
-                            style="@style/Widget.Material3.Button.OutlinedButton" />
+                            android:orientation="horizontal"
+                            android:gravity="center"
+                            android:background="@drawable/bg_outline_button"
+                            android:clickable="true"
+                            android:focusable="true">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_share"
+                                app:tint="@color/green_primary"
+                                android:layout_marginEnd="8dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Share"
+                                android:textSize="14sp"
+                                android:textColor="@color/green_primary" />
+
+                        </LinearLayout>
 
                     </LinearLayout>
 
@@ -253,7 +277,8 @@
                 android:id="@+id/card_ingredients"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="16dp"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="16dp"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="4dp"
                 app:cardBackgroundColor="@color/white">
@@ -283,12 +308,6 @@
                             android:textSize="18sp"
                             android:textStyle="bold" />
 
-                        <ImageView
-                            android:id="@+id/icon_expand_ingredients"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/ic_down"
-                            app:tint="@color/green_primary" />
 
                     </LinearLayout>
 
@@ -432,16 +451,25 @@
 
                     </LinearLayout>
 
-                    <com.google.android.material.button.MaterialButton
+                    <LinearLayout
                         android:id="@+id/button_show_ingredients"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
-                        android:text="Show Full Ingredients"
-                        android:textSize="14sp"
+                        android:orientation="horizontal"
+                        android:gravity="center"
                         android:layout_marginTop="16dp"
-                        app:cornerRadius="12dp"
-                        app:backgroundTint="@color/green_primary"
-                        style="@style/Widget.Material3.Button" />
+                        android:background="@drawable/bg_filled_green_button"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Show Full Ingredients"
+                            android:textSize="14sp"
+                            android:textColor="@color/white" />
+
+                    </LinearLayout>
 
                 </LinearLayout>
 
@@ -483,12 +511,6 @@
                             android:textSize="18sp"
                             android:textStyle="bold" />
 
-                        <ImageView
-                            android:id="@+id/icon_expand_instructions"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/ic_down"
-                            app:tint="@color/green_primary" />
 
                     </LinearLayout>
 
@@ -657,68 +679,25 @@
 
                     </LinearLayout>
 
-                    <com.google.android.material.button.MaterialButton
+                    <LinearLayout
                         android:id="@+id/button_show_instructions"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
-                        android:text="Show Full Instructions"
-                        android:textSize="14sp"
-                        android:layout_marginTop="16dp"
-                        app:cornerRadius="12dp"
-                        app:backgroundTint="@color/green_primary"
-                        style="@style/Widget.Material3.Button" />
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Notes Section -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginBottom="24dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                app:cardBackgroundColor="@color/orange_50">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="20dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="8dp">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:src="@drawable/ic_info"
-                            app:tint="@color/orange_600"
-                            android:layout_marginEnd="8dp" />
+                        android:gravity="center"
+                        android:layout_marginTop="16dp"
+                        android:background="@drawable/bg_filled_green_button"
+                        android:clickable="true"
+                        android:focusable="true">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Chef's Notes"
-                            android:textColor="@color/orange_600"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
+                            android:text="Show Full Instructions"
+                            android:textSize="14sp"
+                            android:textColor="@color/white" />
 
                     </LinearLayout>
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="This soup, known as 'Stracciatella' is synonymous with Italian Wedding Soup. Some variations include tiny meatballs for extra heartiness."
-                        android:textColor="@color/gray_700"
-                        android:textSize="14sp"
-                        android:lineSpacingExtra="4dp" />
 
                 </LinearLayout>
 
@@ -728,18 +707,40 @@
 
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Start Cooking Button -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/button_start_cooking"
+    <!-- Bottom Bar with Start Cooking Button -->
+    <LinearLayout
+        android:id="@+id/bottom_bar"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_margin="16dp"
-        android:text="Start Cooking"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        app:cornerRadius="16dp"
-        app:backgroundTint="@color/green_primary"
-        android:layout_gravity="bottom"
-        style="@style/Widget.Material3.Button" />
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical"
+        android:background="@color/white"
+        android:elevation="8dp"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="44dp">
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+        <LinearLayout
+            android:id="@+id/button_start_cooking"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:background="@drawable/bg_filled_green_button"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Start Cooking"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/white" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>

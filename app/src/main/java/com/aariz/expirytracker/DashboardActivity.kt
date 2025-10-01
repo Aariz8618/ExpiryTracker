@@ -164,8 +164,8 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         tabRecipes.setOnClickListener {
-            // startActivity(Intent(this, RecipesActivity::class.java))
-            Toast.makeText(this, "Recipes coming soon!", Toast.LENGTH_SHORT).show()
+            // Navigate to RecipesActivity
+            startActivity(Intent(this, RecipesActivity::class.java))
         }
 
         tabSettings.setOnClickListener {
