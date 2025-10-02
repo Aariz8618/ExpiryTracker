@@ -493,24 +493,56 @@ class AddItemActivity : AppCompatActivity() {
     private fun calculateDaysLeft(expiryDate: String): Int {
         return try {
             val sdf = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-            val expiry = sdf.parse(expiryDate)
-            val today = Calendar.getInstance().apply {
+            sdf.isLenient = false
+
+            val expiry = sdf.parse(expiryDate) ?: return 0
+
+            // Normalize both dates to midnight
+            val expiryCalendar = Calendar.getInstance().apply {
+                time = expiry
                 set(Calendar.HOUR_OF_DAY, 0)
                 set(Calendar.MINUTE, 0)
                 set(Calendar.SECOND, 0)
                 set(Calendar.MILLISECOND, 0)
-            }.time
-            val diff = expiry!!.time - today.time
-            TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS).toInt()
+            }
+
+            val todayCalendar = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+
+            val diffInMillis = expiryCalendar.timeInMillis - todayCalendar.timeInMillis
+            val daysLeft = TimeUnit.MILLISECONDS.toDays(diffInMillis).toInt()
+
+            Log.d("AddItemActivity", "Expiry: $expiryDate, Days left: $daysLeft")
+            return daysLeft
         } catch (e: Exception) {
+            Log.e("AddItemActivity", "Error calculating days left: ${e.message}", e)
             0
         }
     }
 
-    private fun determineStatus(daysLeft: Int) = when {
-        daysLeft < 0 -> "expired"
-        daysLeft <= 3 -> "expiring"
-        else -> "fresh"
+    private fun determineStatus(daysLeft: Int): String {
+        return when {
+            daysLeft < 0 -> {
+                Log.d("AddItemActivity", "Status: expired (days: $daysLeft)")
+                "expired"
+            }
+            daysLeft == 0 -> {
+                Log.d("AddItemActivity", "Status: expiring (days: $daysLeft)")
+                "expiring"
+            }
+            daysLeft <= 3 -> {
+                Log.d("AddItemActivity", "Status: expiring (days: $daysLeft)")
+                "expiring"
+            }
+            else -> {
+                Log.d("AddItemActivity", "Status: fresh (days: $daysLeft)")
+                "fresh"
+            }
+        }
     }
 
     private fun setupBackPressedHandler() {

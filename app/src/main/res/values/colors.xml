@@ -31,13 +31,14 @@
     <color name="orange_500">#F97316</color>
     <color name="red_500">#EF4444</color>
 
-        <!-- Primary Colors -->
-        <color name="green_600">#43A047</color>
+    <!-- Primary Colors -->
+    <color name="green_600">#43A047</color>
 
-        <!-- Orange Colors -->
-        <color name="orange_400">#FF9800</color>
-        <color name="orange_600">#F57C00</color>
-        <color name="orange_50">#FFEED1</color>
+    <!-- Orange Colors -->
+    <color name="orange_400">#FF9800</color>
+    <color name="orange_600">#F57C00</color>
+    <color name="orange_50">#FFEED1</color>
+    <color name="orange_primary">#FF9800</color>
 
     <color name="gray_400">#9CA3AF</color>
     <color name="gray_900">#111827</color>
@@ -61,6 +62,9 @@
     <color name="primary">#FF2196F3</color>
     <color name="primary_dark">#FF1976D2</color>
     <color name="primary_light">#FFBBDEFB</color>
+    <color name="blue_500">#2196F3</color>
+    <color name="blue_50">#E3F2FD</color>
+    <color name="blue_700">#1976D2</color>
 
     <!-- Status colors for different data sources -->
     <color name="status_fresh">#FF4CAF50</color>

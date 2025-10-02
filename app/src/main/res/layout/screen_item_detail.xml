@@ -26,13 +26,13 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_back"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 app:icon="@drawable/left_arrow"
                 app:iconTint="@color/green_primary"
-                app:iconSize="20dp"
+                app:iconSize="24dp"
                 style="@style/Widget.Material3.Button.IconButton" />
 
             <TextView
@@ -133,7 +133,8 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:paddingTop="20dp"
-                android:paddingBottom="4dp">
+                android:paddingBottom="4dp"
+                android:layout_marginBottom="4dp">
 
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="wrap_content"
@@ -164,7 +165,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:gravity="center"
-                android:paddingTop="24dp"
+                android:paddingTop="20dp"
                 android:paddingBottom="20dp"
                 android:paddingHorizontal="16dp">
 
@@ -425,7 +426,7 @@
                                     android:id="@+id/timeline_line"
                                     android:layout_width="2dp"
                                     android:layout_height="36dp"
-                                    android:background="@color/green_200" />
+                                    android:background="@color/gray_400" />
 
                                 <View
                                     android:id="@+id/timeline_progress"

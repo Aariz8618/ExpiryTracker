@@ -11,13 +11,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingTop="30dp"
-        android:paddingBottom="16dp"
-        android:paddingLeft="16dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="8dp"
+        android:paddingLeft="8dp"
         android:paddingRight="16dp"
         android:gravity="center_vertical"
-        android:background="@android:color/white"
-        android:elevation="2dp">
+        android:background="@android:color/white">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_back"
@@ -38,8 +37,7 @@
             android:textSize="22sp"
             android:fontFamily="@font/roboto_bold"
             android:textColor="@color/gray_900"
-            android:gravity="center"
-            android:layout_marginEnd="48dp" />
+            android:layout_marginStart="8dp" />
 
     </LinearLayout>
 
@@ -89,6 +87,14 @@
                             android:textSize="36sp"
                             android:textStyle="bold"
                             android:textColor="@android:color/white" />
+
+                        <!-- Add ImageView for profile picture -->
+                        <ImageView
+                            android:id="@+id/profile_image_view"
+                            android:layout_width="100dp"
+                            android:layout_height="100dp"
+                            android:visibility="gone"
+                            android:scaleType="centerCrop" />
 
                     </FrameLayout>
 

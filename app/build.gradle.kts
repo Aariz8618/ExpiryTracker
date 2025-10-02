@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -16,6 +18,15 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Load Cloudinary credentials from local.properties
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localPropertiesFile.inputStream().use { localProperties.load(it) }
+        }
+
+        buildConfigField("String", "CLOUDINARY_CLOUD_NAME", "\"${localProperties.getProperty("CLOUDINARY_CLOUD_NAME", "")}\"")
     }
 
     buildTypes {
@@ -27,12 +38,18 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     kotlinOptions {
         jvmTarget = "11"
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 }
 
@@ -47,25 +64,25 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
-    // Firebase BOM (Bill of Materials) – keep all Firebase libs same version
+    // Firebase BOM (Bill of Materials)
     implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
 
-    // Firebase Services
+    // Firebase Services (removed firebase-storage-ktx)
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.firebase:firebase-firestore") // Added Firestore
+    implementation("com.google.firebase:firebase-firestore")
 
-    // Coroutines for async operations (required for Firestore integration)
+    // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
-    // RecyclerView (for displaying grocery items list)
+    // RecyclerView
     implementation("androidx.recyclerview:recyclerview:1.3.2")
 
-    // Lifecycle components for coroutines (enables lifecycleScope)
+    // Lifecycle components
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
 
-    // WorkManager for scheduling notifications
+    // WorkManager
     implementation("androidx.work:work-runtime-ktx:2.9.0")
 
     // For notifications
@@ -74,22 +91,24 @@ dependencies {
     // MLKit & CameraX
     implementation("com.google.mlkit:barcode-scanning:17.3.0")
     implementation("com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.1")
-    implementation("androidx.camera:camera-core:1.4.0")
+    implementation("androidx.camera:camera-core:1.5.0")
     implementation("androidx.camera:camera-camera2:1.4.0")
-    implementation("androidx.camera:camera-lifecycle:1.4.0")
-    implementation("androidx.camera:camera-view:1.4.0")
+    implementation("androidx.camera:camera-lifecycle:1.5.0")
+    implementation("androidx.camera:camera-view:1.5.0")
 
-// Networking
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
-
-// Image Loading
-    implementation("com.github.bumptech.glide:glide:4.16.0")
-
+    // Networking
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    // Image Loading
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+
+    // Image compression (optional but recommended)
+    implementation("id.zelory:compressor:3.0.1")
+
+    // Cloudinary for image upload
+    implementation("com.cloudinary:cloudinary-android:3.0.2")
+    implementation("com.cloudinary:cloudinary-core:1.38.0")
 }

@@ -78,7 +78,11 @@ class ItemDetailActivity : AppCompatActivity() {
         val purchase = intent.getStringExtra("purchaseDate") ?: ""
         val quantity = intent.getIntExtra("quantity", 0)
         val status = intent.getStringExtra("status") ?: "fresh"
-        val daysLeft = intent.getIntExtra("daysLeft", 0)
+        val oldDaysLeft = intent.getIntExtra("daysLeft", 0) // Original days left
+
+        // RECALCULATE days left and status in real-time
+        val actualDaysLeft = calculateDaysLeft(expiry)
+        val actualStatus = determineStatus(actualDaysLeft, status)
 
         findViewById<TextView>(R.id.text_name).text = name
         findViewById<TextView>(R.id.text_category_chip).text = category
@@ -87,10 +91,51 @@ class ItemDetailActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.text_quantity).text = quantity.toString()
 
         setItemIcon(category)
-        updateStatusDisplay(status, daysLeft)
-        updateTimelineVisuals(purchase, expiry, status)
-        startCountdownTimer(expiry, status)
+        updateStatusDisplay(actualStatus, actualDaysLeft) // Use recalculated values
+        updateTimelineVisuals(purchase, expiry, actualStatus) // Use recalculated status
+        startCountdownTimer(expiry, actualStatus) // Use recalculated status
         setupClickListeners()
+    }
+
+    private fun calculateDaysLeft(expiryDate: String): Int {
+        return try {
+            val sdf = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+            sdf.isLenient = false
+
+            val expiry = sdf.parse(expiryDate) ?: return 0
+
+            val expiryCalendar = Calendar.getInstance().apply {
+                time = expiry
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+
+            val todayCalendar = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+
+            val diffInMillis = expiryCalendar.timeInMillis - todayCalendar.timeInMillis
+            TimeUnit.MILLISECONDS.toDays(diffInMillis).toInt()
+        } catch (e: Exception) {
+            0
+        }
+    }
+
+    private fun determineStatus(daysLeft: Int, currentStatus: String): String {
+        // Don't change status if item is marked as "used"
+        if (currentStatus == "used") return "used"
+
+        return when {
+            daysLeft < 0 -> "expired"
+            daysLeft == 0 -> "expiring"
+            daysLeft <= 3 -> "expiring"
+            else -> "fresh"
+        }
     }
 
     private fun setItemIcon(category: String) {
@@ -118,14 +163,24 @@ class ItemDetailActivity : AppCompatActivity() {
                 statusText.setTextColor(Color.parseColor("#2E7D32"))
             }
             "expiring" -> {
-                val daysLabel = if (daysLeft == 1) "1 day" else "$daysLeft days"
+                val daysLabel = when {
+                    daysLeft == 0 -> "Today"
+                    daysLeft == 1 -> "1 day"
+                    else -> "$daysLeft days"
+                }
                 statusChip.text = "Expires in $daysLabel"
                 statusChip.setTextColor(Color.parseColor("#F57C00"))
                 statusText.text = "Expiring"
                 statusText.setTextColor(Color.parseColor("#F57C00"))
             }
             "expired" -> {
-                statusChip.text = "Expired"
+                val daysAgo = Math.abs(daysLeft)
+                val expiredText = when {
+                    daysAgo == 0 -> "Expired today"
+                    daysAgo == 1 -> "Expired 1 day ago"
+                    else -> "Expired $daysAgo days ago"
+                }
+                statusChip.text = expiredText
                 statusChip.setTextColor(Color.parseColor("#B71C1C"))
                 statusText.text = "Expired"
                 statusText.setTextColor(Color.parseColor("#B71C1C"))
@@ -195,8 +250,17 @@ class ItemDetailActivity : AppCompatActivity() {
                     val expiryDate = sdf.parse(expiryDateStr)
 
                     if (expiryDate != null) {
-                        val now = Calendar.getInstance().time
-                        val diffInMillis = expiryDate.time - now.time
+                        // Set expiry date to end of day (23:59:59) for accurate countdown
+                        val expiryCalendar = Calendar.getInstance().apply {
+                            time = expiryDate
+                            set(Calendar.HOUR_OF_DAY, 23)
+                            set(Calendar.MINUTE, 59)
+                            set(Calendar.SECOND, 59)
+                            set(Calendar.MILLISECOND, 999)
+                        }
+
+                        val now = Calendar.getInstance()
+                        val diffInMillis = expiryCalendar.timeInMillis - now.timeInMillis
 
                         if (diffInMillis <= 0) {
                             // Expired

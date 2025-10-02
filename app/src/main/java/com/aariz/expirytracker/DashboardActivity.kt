@@ -1,18 +1,22 @@
 package com.aariz.expirytracker
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
@@ -29,17 +33,28 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var firestoreRepository: FirestoreRepository
     private lateinit var auth: FirebaseAuth
 
+    private var hasAskedForNotificationPermission = false
+
+    // Notification permission launcher
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Toast.makeText(this, "Notifications enabled! You'll receive expiry reminders.", Toast.LENGTH_LONG).show()
+            scheduleNotifications()
+        } else {
+            Toast.makeText(this, "Notifications disabled. You won't receive expiry reminders.", Toast.LENGTH_LONG).show()
+        }
+        // Mark that we've asked
+        saveNotificationPermissionAsked()
+    }
+
     // Activity Result Launchers
     private val addItemLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == RESULT_OK && result.data != null) {
-            val itemSaved = result.data?.getBooleanExtra("item_saved", false) ?: false
-            if (itemSaved) {
-                Toast.makeText(this, "Item added successfully!", Toast.LENGTH_SHORT).show()
-                // Reload all items to get the fresh data from Firestore
-                loadGroceryItems()
-            }
+        if (result.resultCode == RESULT_OK) {
+            loadGroceryItems()
         }
     }
 
@@ -47,12 +62,10 @@ class DashboardActivity : AppCompatActivity() {
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
-            // Check if item was updated or deleted
             val itemUpdated = result.data?.getBooleanExtra("item_updated", false) ?: false
             val itemDeleted = result.data?.getBooleanExtra("item_deleted", false) ?: false
 
             if (itemUpdated || itemDeleted) {
-                // Reload items to reflect changes
                 loadGroceryItems()
             }
         }
@@ -61,14 +74,11 @@ class DashboardActivity : AppCompatActivity() {
     private val profileLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        // Check if user logged out from profile screen
         if (auth.currentUser == null) {
-            // User logged out, clear the logged-in flag and redirect to login
             clearUserLoggedInFlag()
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
         } else {
-            // User came back from profile, refresh greeting
             setupGreeting()
         }
     }
@@ -77,13 +87,10 @@ class DashboardActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_dashboard)
 
-        // Initialize Firebase components
         auth = FirebaseAuth.getInstance()
         firestoreRepository = FirestoreRepository()
 
-        // Check if user is authenticated
         if (auth.currentUser == null) {
-            // Clear logged-in flag and redirect to login activity
             clearUserLoggedInFlag()
             Toast.makeText(this, "Please login to continue", Toast.LENGTH_SHORT).show()
             startActivity(Intent(this, LoginActivity::class.java))
@@ -98,11 +105,13 @@ class DashboardActivity : AppCompatActivity() {
         setupProfileButton()
         setupGreeting()
         loadGroceryItems()
+
+        // Request notification permission after a short delay
+        checkAndRequestNotificationPermission()
     }
 
     override fun onResume() {
         super.onResume()
-        // Check if user is still authenticated when returning to dashboard
         if (auth.currentUser == null) {
             clearUserLoggedInFlag()
             startActivity(Intent(this, LoginActivity::class.java))
@@ -110,10 +119,60 @@ class DashboardActivity : AppCompatActivity() {
             return
         }
 
-        // Reload items when returning to dashboard to get fresh data
         loadGroceryItems()
-        // Update greeting in case user updated their profile
         setupGreeting()
+    }
+
+    private fun checkAndRequestNotificationPermission() {
+        // Only for Android 13+ (TIRAMISU)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+            hasAskedForNotificationPermission = prefs.getBoolean("notification_permission_asked", false)
+
+            // Check if permission is already granted
+            val isGranted = ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (isGranted) {
+                // Permission already granted, schedule notifications
+                scheduleNotifications()
+            } else if (!hasAskedForNotificationPermission) {
+                // Ask for permission with explanation
+                showNotificationPermissionDialog()
+            }
+        } else {
+            // For older Android versions, notifications work by default
+            scheduleNotifications()
+        }
+    }
+
+    private fun showNotificationPermissionDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Enable Notifications")
+            .setMessage("Stay informed about items nearing expiry! Enable notifications to receive timely reminders.")
+            .setPositiveButton("Enable") { _, _ ->
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
+            .setNegativeButton("Not Now") { _, _ ->
+                saveNotificationPermissionAsked()
+                Toast.makeText(this, "You can enable notifications later in Settings", Toast.LENGTH_LONG).show()
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun saveNotificationPermissionAsked() {
+        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+        prefs.edit().putBoolean("notification_permission_asked", true).apply()
+    }
+
+    private fun scheduleNotifications() {
+        val notificationScheduler = NotificationScheduler(this)
+        notificationScheduler.scheduleExpiryChecks()
     }
 
     private fun initViews() {
@@ -154,24 +213,19 @@ class DashboardActivity : AppCompatActivity() {
         val tabSettings = findViewById<LinearLayout>(R.id.tab_settings)
 
         tabHome.setOnClickListener {
-            // Already on home - refresh data
             loadGroceryItems()
         }
 
         tabStats.setOnClickListener {
-            // startActivity(Intent(this, StatisticsActivity::class.java))
             Toast.makeText(this, "Statistics coming soon!", Toast.LENGTH_SHORT).show()
         }
 
         tabRecipes.setOnClickListener {
-            // Navigate to RecipesActivity
             startActivity(Intent(this, RecipesActivity::class.java))
         }
 
         tabSettings.setOnClickListener {
-            // Navigate to Profile/Settings screen
-            val intent = Intent(this, ProfileActivity::class.java)
-            profileLauncher.launch(intent)
+            startActivity(Intent(this, SettingsActivity::class.java))
         }
     }
 
@@ -185,7 +239,6 @@ class DashboardActivity : AppCompatActivity() {
 
     private fun setupProfileButton() {
         profileButton.setOnClickListener {
-            // Navigate to Profile screen
             val intent = Intent(this, ProfileActivity::class.java)
             profileLauncher.launch(intent)
         }
@@ -216,7 +269,6 @@ class DashboardActivity : AppCompatActivity() {
                 if (result.isSuccess) {
                     val items = result.getOrNull() ?: emptyList()
 
-                    // Update the list and notify adapter
                     groceryItems.clear()
                     groceryItems.addAll(items)
                     adapter.notifyDataSetChanged()
@@ -254,10 +306,5 @@ class DashboardActivity : AppCompatActivity() {
     private fun clearUserLoggedInFlag() {
         val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
         prefs.edit().putBoolean("user_logged_in_before", false).apply()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        // No cleanup needed for ProgressBar
     }
 }

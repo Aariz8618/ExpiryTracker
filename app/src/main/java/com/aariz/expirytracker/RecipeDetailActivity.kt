@@ -149,7 +149,8 @@ class RecipeDetailActivity : AppCompatActivity() {
         val title = findViewById<TextView>(R.id.text_recipe_title).text.toString()
         val shareIntent = Intent().apply {
             action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TEXT, "Check out this recipe: $title")
+            putExtra(Intent.EXTRA_TEXT, "Check out this recipe: $title\n" +
+                    "")
             type = "text/plain"
         }
 

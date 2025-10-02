@@ -8,6 +8,9 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
+import java.text.SimpleDateFormat
+import java.util.*
+import java.util.concurrent.TimeUnit
 
 class GroceryAdapter(
     private val items: List<GroceryItem>,
@@ -37,17 +40,21 @@ class GroceryAdapter(
         private val itemIcon: ImageView = itemView.findViewById(R.id.iv_item_icon)
 
         fun bind(item: GroceryItem) {
+            // RECALCULATE days left and status in real-time
+            val actualDaysLeft = calculateDaysLeft(item.expiryDate)
+            val actualStatus = determineStatus(actualDaysLeft, item.status)
+
             // Bind all data
             itemName.text = item.name
             category.text = "Category: ${item.category}"
             expiryDate.text = "Expires: ${item.expiryDate}"
             quantity.text = "Qty: ${item.quantity}"
 
-            // Set item icon based on category
-            setItemIcon(item.category, item.status)
+            // Set item icon based on category using recalculated status
+            setItemIcon(item.category, actualStatus)
 
-            // Set status badge text, colors, and indicator based on status
-            when (item.status) {
+            // Set status badge text, colors, and indicator based on RECALCULATED status
+            when (actualStatus) {
                 "used" -> {
                     statusBadge.text = "Used ✓"
                     statusBadge.setTextColor(ContextCompat.getColor(itemView.context, android.R.color.white))
@@ -57,7 +64,14 @@ class GroceryAdapter(
                     cardView.setCardBackgroundColor(ContextCompat.getColor(itemView.context, R.color.green_50))
                 }
                 "expired" -> {
-                    statusBadge.text = "Expired"
+                    val daysAgo = Math.abs(actualDaysLeft)
+                    val expiredText = when {
+                        daysAgo == 0 -> "Expired today"
+                        daysAgo == 1 -> "Expired 1 day ago"
+                        else -> "Expired $daysAgo days ago"
+                    }
+
+                    statusBadge.text = expiredText
                     statusBadge.setTextColor(ContextCompat.getColor(itemView.context, android.R.color.white))
                     statusBadge.setBackgroundResource(R.drawable.status_badge_expired)
                     statusIndicator.setBackgroundColor(ContextCompat.getColor(itemView.context, R.color.red_500))
@@ -66,9 +80,9 @@ class GroceryAdapter(
                 }
                 "expiring" -> {
                     val daysText = when {
-                        item.daysLeft == 0 -> "Expires today"
-                        item.daysLeft == 1 -> "Expires in 1 day"
-                        else -> "Expires in ${item.daysLeft} days"
+                        actualDaysLeft == 0 -> "Expires today"
+                        actualDaysLeft == 1 -> "Expires in 1 day"
+                        else -> "Expires in $actualDaysLeft days"
                     }
 
                     statusBadge.text = daysText
@@ -79,7 +93,7 @@ class GroceryAdapter(
                     cardView.setCardBackgroundColor(ContextCompat.getColor(itemView.context, android.R.color.white))
                 }
                 else -> { // "fresh"
-                    statusBadge.text = "Fresh (${item.daysLeft} days left)"
+                    statusBadge.text = "Fresh ($actualDaysLeft days left)"
                     statusBadge.setTextColor(ContextCompat.getColor(itemView.context, android.R.color.white))
                     statusBadge.setBackgroundResource(R.drawable.status_badge_fresh)
                     statusIndicator.setBackgroundColor(ContextCompat.getColor(itemView.context, R.color.green_500))
@@ -88,9 +102,51 @@ class GroceryAdapter(
                 }
             }
 
-            // Set click listener
+            // Set click listener with recalculated values
             cardView.setOnClickListener {
-                onItemClick(item)
+                onItemClick(item.copy(daysLeft = actualDaysLeft, status = actualStatus))
+            }
+        }
+
+        private fun calculateDaysLeft(expiryDate: String): Int {
+            return try {
+                val sdf = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+                sdf.isLenient = false
+
+                val expiry = sdf.parse(expiryDate) ?: return 0
+
+                // Normalize both dates to midnight
+                val expiryCalendar = Calendar.getInstance().apply {
+                    time = expiry
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+
+                val todayCalendar = Calendar.getInstance().apply {
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+
+                val diffInMillis = expiryCalendar.timeInMillis - todayCalendar.timeInMillis
+                TimeUnit.MILLISECONDS.toDays(diffInMillis).toInt()
+            } catch (e: Exception) {
+                0
+            }
+        }
+
+        private fun determineStatus(daysLeft: Int, currentStatus: String): String {
+            // Don't change status if item is marked as "used"
+            if (currentStatus == "used") return "used"
+
+            return when {
+                daysLeft < 0 -> "expired"
+                daysLeft == 0 -> "expiring"
+                daysLeft <= 3 -> "expiring"
+                else -> "fresh"
             }
         }
 
