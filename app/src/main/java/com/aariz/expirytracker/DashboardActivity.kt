@@ -19,26 +19,41 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
+import java.util.concurrent.TimeUnit
 
 class DashboardActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: GroceryAdapter
     private lateinit var emptyState: LinearLayout
+    private lateinit var tvEmptyMessage: TextView
     private lateinit var greetingText: TextView
     private lateinit var profileButton: ImageView
     private lateinit var loadingIndicator: LinearLayout
+    private val groceryItems = mutableListOf<GroceryItem>()
+    private lateinit var btnFilter: MaterialButton
     private lateinit var bottomNav: LinearLayout
     private lateinit var headerSection: LinearLayout
-    private val groceryItems = mutableListOf<GroceryItem>()
+
+    private val allGroceryItems = mutableListOf<GroceryItem>()
+    private val filteredGroceryItems = mutableListOf<GroceryItem>()
+    private var currentFilter = "all"
+    private var currentFilterIndex = 0
+
 
     private lateinit var firestoreRepository: FirestoreRepository
     private lateinit var auth: FirebaseAuth
 
     private var hasAskedForNotificationPermission = false
+
+    private val filterOptions = arrayOf("All Items", "Fresh", "Expiring Soon", "Expired", "Used")
+    private val filterValues = arrayOf("all", "fresh", "expiring", "expired", "used")
 
     // Notification permission launcher
     private val notificationPermissionLauncher = registerForActivityResult(
@@ -50,7 +65,6 @@ class DashboardActivity : AppCompatActivity() {
         } else {
             Toast.makeText(this, "Notifications disabled. You won't receive expiry reminders.", Toast.LENGTH_LONG).show()
         }
-        // Mark that we've asked
         saveNotificationPermissionAsked()
     }
 
@@ -109,13 +123,13 @@ class DashboardActivity : AppCompatActivity() {
         initViews()
         setupWindowInsets()
         setupRecyclerView()
+        setupFilterButton()
         setupNavigation()
         setupFab()
         setupProfileButton()
         setupGreeting()
         loadGroceryItems()
 
-        // Request notification permission after a short delay
         checkAndRequestNotificationPermission()
     }
 
@@ -155,26 +169,21 @@ class DashboardActivity : AppCompatActivity() {
     }
 
     private fun checkAndRequestNotificationPermission() {
-        // Only for Android 13+ (TIRAMISU)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
             hasAskedForNotificationPermission = prefs.getBoolean("notification_permission_asked", false)
 
-            // Check if permission is already granted
             val isGranted = ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.POST_NOTIFICATIONS
             ) == PackageManager.PERMISSION_GRANTED
 
             if (isGranted) {
-                // Permission already granted, schedule notifications
                 scheduleNotifications()
             } else if (!hasAskedForNotificationPermission) {
-                // Ask for permission with explanation
                 showNotificationPermissionDialog()
             }
         } else {
-            // For older Android versions, notifications work by default
             scheduleNotifications()
         }
     }
@@ -209,17 +218,16 @@ class DashboardActivity : AppCompatActivity() {
     private fun initViews() {
         recyclerView = findViewById(R.id.recycler_items)
         emptyState = findViewById(R.id.empty_state)
+        tvEmptyMessage = findViewById(R.id.tv_empty_message)
         greetingText = findViewById(R.id.tv_greeting)
         profileButton = findViewById(R.id.iv_profile)
         loadingIndicator = findViewById(R.id.loading_indicator)
-        bottomNav = findViewById(R.id.bottom_nav)
-        headerSection = findViewById(R.id.header_section)
     }
 
     private fun setupRecyclerView() {
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        adapter = GroceryAdapter(groceryItems) { item ->
+        adapter = GroceryAdapter(filteredGroceryItems) { item ->
             val intent = Intent(this, ItemDetailActivity::class.java).apply {
                 putExtra("id", item.id)
                 putExtra("name", item.name)
@@ -239,6 +247,60 @@ class DashboardActivity : AppCompatActivity() {
         recyclerView.adapter = adapter
     }
 
+    private fun setupFilterButton() {
+        btnFilter.setOnClickListener {
+            showFilterDialog()
+        }
+    }
+
+    private fun showFilterDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Filter Items")
+            .setSingleChoiceItems(filterOptions, currentFilterIndex) { dialog, which ->
+                currentFilterIndex = which
+                currentFilter = filterValues[which]
+
+                // Update button text
+                btnFilter.text = "Filter: ${filterOptions[which]}"
+
+                // Apply filter
+                applyFilter()
+
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun applyFilter() {
+        filteredGroceryItems.clear()
+
+        val filtered = when (currentFilter) {
+            "all" -> allGroceryItems
+            "fresh" -> allGroceryItems.filter {
+                val daysLeft = calculateDaysLeft(it.expiryDate)
+                val status = determineStatus(daysLeft, it.status)
+                status == "fresh"
+            }
+            "expiring" -> allGroceryItems.filter {
+                val daysLeft = calculateDaysLeft(it.expiryDate)
+                val status = determineStatus(daysLeft, it.status)
+                status == "expiring"
+            }
+            "expired" -> allGroceryItems.filter {
+                val daysLeft = calculateDaysLeft(it.expiryDate)
+                val status = determineStatus(daysLeft, it.status)
+                status == "expired"
+            }
+            "used" -> allGroceryItems.filter { it.status == "used" }
+            else -> allGroceryItems
+        }
+
+        filteredGroceryItems.addAll(filtered)
+        adapter.notifyDataSetChanged()
+        updateEmptyState()
+    }
+
     private fun setupNavigation() {
         val tabHome = findViewById<LinearLayout>(R.id.tab_home)
         val tabStats = findViewById<LinearLayout>(R.id.tab_stats)
@@ -250,7 +312,7 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         tabStats.setOnClickListener {
-            Toast.makeText(this, "Statistics coming soon!", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, StatisticsActivity::class.java))
         }
 
         tabRecipes.setOnClickListener {
@@ -302,11 +364,10 @@ class DashboardActivity : AppCompatActivity() {
                 if (result.isSuccess) {
                     val items = result.getOrNull() ?: emptyList()
 
-                    groceryItems.clear()
-                    groceryItems.addAll(items)
-                    adapter.notifyDataSetChanged()
+                    allGroceryItems.clear()
+                    allGroceryItems.addAll(items)
 
-                    updateEmptyState()
+                    applyFilter()
                 } else {
                     val error = result.exceptionOrNull()
                     Toast.makeText(this@DashboardActivity, "Failed to load items: ${error?.message}", Toast.LENGTH_LONG).show()
@@ -321,9 +382,20 @@ class DashboardActivity : AppCompatActivity() {
     }
 
     private fun updateEmptyState() {
-        if (groceryItems.isEmpty()) {
+        if (filteredGroceryItems.isEmpty()) {
             recyclerView.visibility = View.GONE
             emptyState.visibility = View.VISIBLE
+
+            // Update empty message based on filter
+            val message = when (currentFilter) {
+                "all" -> "No items added yet"
+                "fresh" -> "No fresh items"
+                "expiring" -> "No items expiring soon"
+                "expired" -> "No expired items"
+                "used" -> "No used items"
+                else -> "No items found"
+            }
+            tvEmptyMessage.text = message
         } else {
             recyclerView.visibility = View.VISIBLE
             emptyState.visibility = View.GONE
@@ -334,6 +406,46 @@ class DashboardActivity : AppCompatActivity() {
         loadingIndicator.visibility = if (show) View.VISIBLE else View.GONE
         recyclerView.visibility = if (show) View.GONE else View.VISIBLE
         emptyState.visibility = View.GONE
+    }
+
+    private fun calculateDaysLeft(expiryDate: String): Int {
+        return try {
+            val sdf = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+            sdf.isLenient = false
+
+            val expiry = sdf.parse(expiryDate) ?: return 0
+
+            val expiryCalendar = Calendar.getInstance().apply {
+                time = expiry
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+
+            val todayCalendar = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+
+            val diffInMillis = expiryCalendar.timeInMillis - todayCalendar.timeInMillis
+            TimeUnit.MILLISECONDS.toDays(diffInMillis).toInt()
+        } catch (e: Exception) {
+            0
+        }
+    }
+
+    private fun determineStatus(daysLeft: Int, currentStatus: String): String {
+        if (currentStatus == "used") return "used"
+
+        return when {
+            daysLeft < 0 -> "expired"
+            daysLeft == 0 -> "expiring"
+            daysLeft <= 2 -> "expiring"
+            else -> "fresh"
+        }
     }
 
     private fun clearUserLoggedInFlag() {

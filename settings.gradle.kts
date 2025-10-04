@@ -16,9 +16,9 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven { url = uri("https://jitpack.io") }  // Fixed: Use uri() in Kotlin DSL
     }
 }
 
 rootProject.name = "ExpiryTracker"
 include(":app")
- 
