@@ -87,6 +87,10 @@
             android:name=".PrivacyPolicyActivity"
             android:screenOrientation="portrait" />
         <activity
+            android:name=".FeedbackActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
             android:name=".SplashScreenActivity"
             android:exported="true">
             <intent-filter>

@@ -79,7 +79,8 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         rowSupport.setOnClickListener {
-            openEmailSupport()
+            // Navigate to Feedback Activity instead of email
+            startActivity(Intent(this, FeedbackActivity::class.java))
         }
 
     }
@@ -119,21 +120,6 @@ class SettingsActivity : AppCompatActivity() {
             )
             .setPositiveButton("OK", null)
             .show()
-    }
-
-    private fun openEmailSupport() {
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "message/rfc822"
-            putExtra(Intent.EXTRA_EMAIL, arrayOf("support@expirytracker.com"))
-            putExtra(Intent.EXTRA_SUBJECT, "Expiry Tracker Support Request")
-            putExtra(Intent.EXTRA_TEXT, "Please describe your issue or feedback:\n\n")
-        }
-
-        try {
-            startActivity(Intent.createChooser(intent, "Send Email"))
-        } catch (e: Exception) {
-            Toast.makeText(this, "No email app found", Toast.LENGTH_SHORT).show()
-        }
     }
 
     override fun onResume() {
