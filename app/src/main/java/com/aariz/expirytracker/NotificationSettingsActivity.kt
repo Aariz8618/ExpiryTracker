@@ -29,8 +29,10 @@ class NotificationSettingsActivity : AppCompatActivity() {
     private lateinit var switchDailySummary: MaterialSwitch
     private lateinit var inputDaysBefore: TextInputEditText
     private lateinit var btnSave: LinearLayout
-    private lateinit var btnTestNotification: MaterialButton
-    private lateinit var btnCheckPermission: MaterialButton
+
+    // Optional test components (commented out in layout)
+    // private lateinit var btnTestNotification: MaterialButton
+    // private lateinit var btnCheckPermission: MaterialButton
 
     // Permission launcher
     private val notificationPermissionLauncher = registerForActivityResult(
@@ -38,7 +40,7 @@ class NotificationSettingsActivity : AppCompatActivity() {
     ) { isGranted ->
         if (isGranted) {
             Toast.makeText(this, "Notification permission granted!", Toast.LENGTH_SHORT).show()
-            updatePermissionStatus()
+            // updatePermissionStatus() // Uncomment if using test buttons
         } else {
             Toast.makeText(this, "Notification permission denied", Toast.LENGTH_SHORT).show()
             showPermissionDeniedDialog()
@@ -55,7 +57,7 @@ class NotificationSettingsActivity : AppCompatActivity() {
         initViews()
         setupClickListeners()
         loadNotificationSettings()
-        updatePermissionStatus()
+        // updatePermissionStatus() // Uncomment if using test buttons
     }
 
     private fun initViews() {
@@ -64,8 +66,10 @@ class NotificationSettingsActivity : AppCompatActivity() {
         switchDailySummary = findViewById(R.id.switch_daily_summary)
         inputDaysBefore = findViewById(R.id.input_days_before)
         btnSave = findViewById(R.id.button_save)
-        btnTestNotification = findViewById(R.id.button_test_notification)
-        btnCheckPermission = findViewById(R.id.button_check_permission)
+
+        // Test buttons are commented out in layout, so don't initialize them
+        // btnTestNotification = findViewById(R.id.button_test_notification)
+        // btnCheckPermission = findViewById(R.id.button_check_permission)
     }
 
     private fun setupClickListeners() {
@@ -81,6 +85,8 @@ class NotificationSettingsActivity : AppCompatActivity() {
             showDaysPickerDialog()
         }
 
+        // Test button listeners are commented out since buttons are not in layout
+        /*
         btnTestNotification.setOnClickListener {
             sendTestNotification()
         }
@@ -88,6 +94,7 @@ class NotificationSettingsActivity : AppCompatActivity() {
         btnCheckPermission.setOnClickListener {
             checkNotificationPermission()
         }
+        */
 
         switchEnableNotifications.setOnCheckedChangeListener { _, isChecked ->
             switchDailySummary.isEnabled = isChecked
@@ -150,6 +157,7 @@ class NotificationSettingsActivity : AppCompatActivity() {
             .show()
     }
 
+    // Test notification function - kept for future use
     private fun sendTestNotification() {
         if (!notificationHelper.hasNotificationPermission()) {
             Toast.makeText(this, "Please grant notification permission first", Toast.LENGTH_SHORT).show()
@@ -171,6 +179,7 @@ class NotificationSettingsActivity : AppCompatActivity() {
         Toast.makeText(this, "Test notification sent!", Toast.LENGTH_SHORT).show()
     }
 
+    // Check permission function - kept for future use
     private fun checkNotificationPermission() {
         val hasPermission = notificationHelper.hasNotificationPermission()
         val areEnabled = notificationHelper.areNotificationsEnabled()
@@ -199,13 +208,14 @@ class NotificationSettingsActivity : AppCompatActivity() {
             .show()
     }
 
+    // Update permission status - kept for future use with test buttons
     private fun updatePermissionStatus() {
         val hasPermission = notificationHelper.hasNotificationPermission()
-        btnCheckPermission.text = if (hasPermission) {
-            "Permission Status: Granted"
-        } else {
-            "Permission Status: Not Granted"
-        }
+        // btnCheckPermission.text = if (hasPermission) {
+        //     "Permission Status: Granted"
+        // } else {
+        //     "Permission Status: Not Granted"
+        // }
     }
 
     private fun requestNotificationPermission() {

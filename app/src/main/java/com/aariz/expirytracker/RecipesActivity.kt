@@ -11,6 +11,7 @@ import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.aariz.expirytracker.data.model.Recipe
 import com.aariz.expirytracker.data.repository.RecipeRepository
 import com.google.android.material.button.MaterialButton
@@ -22,12 +23,17 @@ class RecipesActivity : AppCompatActivity() {
     private lateinit var adapter: RecipesAdapter
     private lateinit var progressBar: ProgressBar
     private lateinit var emptyState: LinearLayout
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
     private val recipeRepository = RecipeRepository()
     private val firestoreRepository = FirestoreRepository()
     private val recipes = mutableListOf<Recipe>()
     private var userIngredients = listOf<String>()
     private var isSearchMode = false
+    private var currentSearchQuery = ""
+
+    // Cache for suggested recipes based on user ingredients
+    private val suggestedRecipesCache = mutableListOf<Recipe>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,6 +43,7 @@ class RecipesActivity : AppCompatActivity() {
         setupBackButton()
         setupRecyclerView()
         setupSearchView()
+        setupSwipeRefresh()
 
         // Load all recipes with priority sorting
         loadAllRecipes()
@@ -47,6 +54,7 @@ class RecipesActivity : AppCompatActivity() {
         recyclerView = findViewById(R.id.recycler_recipes)
         progressBar = findViewById(R.id.progress_bar)
         emptyState = findViewById(R.id.empty_state)
+        swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout)
     }
 
     private fun setupBackButton() {
@@ -68,9 +76,11 @@ class RecipesActivity : AppCompatActivity() {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 if (!query.isNullOrBlank()) {
                     isSearchMode = true
+                    currentSearchQuery = query
                     searchRecipes(query)
                 } else {
                     isSearchMode = false
+                    currentSearchQuery = ""
                     loadAllRecipes()
                 }
                 return true
@@ -80,6 +90,7 @@ class RecipesActivity : AppCompatActivity() {
                 // If search is cleared, reload all recipes
                 if (newText.isNullOrBlank() && isSearchMode) {
                     isSearchMode = false
+                    currentSearchQuery = ""
                     loadAllRecipes()
                 }
                 return true
@@ -87,7 +98,31 @@ class RecipesActivity : AppCompatActivity() {
         })
     }
 
-    private fun loadAllRecipes() {
+    private fun setupSwipeRefresh() {
+        swipeRefreshLayout.setOnRefreshListener {
+            if (isSearchMode) {
+                // Re-run the search
+                if (currentSearchQuery.isNotBlank()) {
+                    searchRecipes(currentSearchQuery)
+                } else {
+                    loadAllRecipes()
+                }
+            } else {
+                // Reload all recipes
+                loadAllRecipes()
+            }
+        }
+
+        // Set color scheme for refresh indicator
+        swipeRefreshLayout.setColorSchemeResources(
+            android.R.color.holo_blue_bright,
+            android.R.color.holo_green_light,
+            android.R.color.holo_orange_light,
+            android.R.color.holo_red_light
+        )
+    }
+
+    private fun loadAllRecipes(forceRefresh: Boolean = false) {
         showLoading(true)
 
         lifecycleScope.launch {
@@ -104,29 +139,43 @@ class RecipesActivity : AppCompatActivity() {
                         .map { it.name.lowercase() }
                         .distinct()
 
-                    // Get suggested recipes based on user's ingredients
-                    val suggestedResult = recipeRepository.getSuggestedRecipes(userIngredients)
+                    // Get suggested recipes based on user's ingredients (cache them)
+                    if (suggestedRecipesCache.isEmpty() || forceRefresh) {
+                        val suggestedResult = recipeRepository.getSuggestedRecipes(userIngredients)
+                        val suggestedRecipes = suggestedResult.getOrNull() ?: emptyList()
 
-                    // Get popular recipes
-                    val popularResult = recipeRepository.getPopularRecipes()
+                        suggestedRecipesCache.clear()
+                        suggestedRecipesCache.addAll(suggestedRecipes)
+                    }
 
-                    // Combine and sort recipes
-                    val suggestedRecipes = suggestedResult.getOrNull() ?: emptyList()
-                    val popularRecipes = popularResult.getOrNull() ?: emptyList()
+                    // Get popular recipes with varied queries for diversity
+                    val popularQueries = getRandomPopularQueries()
+                    val allPopularRecipes = mutableListOf<Recipe>()
+
+                    for (query in popularQueries) {
+                        val result = recipeRepository.searchRecipes(query)
+                        if (result.isSuccess) {
+                            val newRecipes = result.getOrNull() ?: emptyList()
+                            allPopularRecipes.addAll(newRecipes)
+                        }
+                    }
 
                     // Create a combined list with priority
                     val allRecipes = mutableListOf<Recipe>()
 
                     // Add suggested recipes first (these match user's ingredients)
-                    allRecipes.addAll(suggestedRecipes)
+                    allRecipes.addAll(suggestedRecipesCache)
 
                     // Add popular recipes that aren't already in suggested
-                    val suggestedTitles = suggestedRecipes.map { it.title }.toSet()
-                    val uniquePopular = popularRecipes.filter { it.title !in suggestedTitles }
+                    val suggestedTitles = suggestedRecipesCache.map { it.title.lowercase() }.toSet()
+                    val uniquePopular = allPopularRecipes.filter {
+                        it.title.lowercase() !in suggestedTitles
+                    }
                     allRecipes.addAll(uniquePopular)
 
-                    // Sort by relevance score
-                    val sortedRecipes = sortRecipesByRelevance(allRecipes)
+                    // Remove duplicates and sort by relevance score
+                    val uniqueRecipes = allRecipes.distinctBy { it.title.lowercase() }
+                    val sortedRecipes = sortRecipesByRelevance(uniqueRecipes)
 
                     recipes.clear()
                     recipes.addAll(sortedRecipes)
@@ -134,8 +183,10 @@ class RecipesActivity : AppCompatActivity() {
                     updateEmptyState()
 
                     showLoading(false)
+                    swipeRefreshLayout.isRefreshing = false
                 } else {
                     showLoading(false)
+                    swipeRefreshLayout.isRefreshing = false
                     Toast.makeText(
                         this@RecipesActivity,
                         "Failed to load your ingredients",
@@ -147,6 +198,7 @@ class RecipesActivity : AppCompatActivity() {
                 }
             } catch (e: Exception) {
                 showLoading(false)
+                swipeRefreshLayout.isRefreshing = false
                 Toast.makeText(
                     this@RecipesActivity,
                     "Error: ${e.message}",
@@ -160,10 +212,30 @@ class RecipesActivity : AppCompatActivity() {
     private fun loadPopularRecipesOnly() {
         lifecycleScope.launch {
             try {
-                val result = recipeRepository.getPopularRecipes()
-                handleRecipeResult(result)
+                val allRecipes = mutableListOf<Recipe>()
+                val queries = getRandomPopularQueries()
+
+                for (query in queries) {
+                    val result = recipeRepository.searchRecipes(query)
+                    if (result.isSuccess) {
+                        val newRecipes = result.getOrNull() ?: emptyList()
+                        allRecipes.addAll(newRecipes)
+                    }
+                }
+
+                // Remove duplicates
+                val uniqueRecipes = allRecipes.distinctBy { it.title.lowercase() }
+
+                recipes.clear()
+                recipes.addAll(uniqueRecipes)
+                adapter.notifyDataSetChanged()
+                updateEmptyState()
+
+                showLoading(false)
+                swipeRefreshLayout.isRefreshing = false
             } catch (e: Exception) {
                 showLoading(false)
+                swipeRefreshLayout.isRefreshing = false
                 Toast.makeText(
                     this@RecipesActivity,
                     "Error: ${e.message}",
@@ -172,6 +244,19 @@ class RecipesActivity : AppCompatActivity() {
                 updateEmptyState()
             }
         }
+    }
+
+    private fun getRandomPopularQueries(): List<String> {
+        val allQueries = listOf(
+            "chicken", "pasta", "salad", "soup", "beef", "fish", "vegetarian",
+            "rice", "noodles", "curry", "steak", "sandwich", "burger", "pizza",
+            "dessert", "cake", "cookies", "seafood", "lamb", "pork", "tacos",
+            "stir fry", "casserole", "breakfast", "lunch", "dinner", "healthy",
+            "quick", "easy", "mexican", "italian", "chinese", "indian", "thai"
+        )
+
+        // Return 10-12 random queries for more variety
+        return allQueries.shuffled().take((10..12).random())
     }
 
     private fun sortRecipesByRelevance(recipeList: List<Recipe>): List<Recipe> {
@@ -204,10 +289,27 @@ class RecipesActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                val result = recipeRepository.searchRecipes(query)
-                handleRecipeResult(result)
+                // Get varied search results by using related terms
+                val searchQueries = generateSearchVariations(query)
+                val allSearchResults = mutableListOf<Recipe>()
+
+                for (searchQuery in searchQueries) {
+                    val result = recipeRepository.searchRecipes(searchQuery)
+                    if (result.isSuccess) {
+                        val newRecipes = result.getOrNull() ?: emptyList()
+                        allSearchResults.addAll(newRecipes)
+                    }
+                }
+
+                // Remove duplicates
+                val uniqueResults = allSearchResults.distinctBy { it.title.lowercase() }
+
+                val finalResult = Result.success(uniqueResults)
+                handleRecipeResult(finalResult)
+                swipeRefreshLayout.isRefreshing = false
             } catch (e: Exception) {
                 showLoading(false)
+                swipeRefreshLayout.isRefreshing = false
                 Toast.makeText(
                     this@RecipesActivity,
                     "Error: ${e.message}",
@@ -216,6 +318,31 @@ class RecipesActivity : AppCompatActivity() {
                 updateEmptyState()
             }
         }
+    }
+
+    private fun generateSearchVariations(query: String): List<String> {
+        val variations = mutableListOf<String>()
+
+        // Add original query
+        variations.add(query)
+
+        // Add variations with common terms
+        variations.add("$query recipe")
+        variations.add("$query recipes")
+        variations.add("$query dish")
+        variations.add("easy $query")
+        variations.add("best $query")
+        variations.add("simple $query")
+
+        // If query is more than one word, try each word separately
+        val words = query.split(" ").filter { it.length > 3 }
+        words.forEach { word ->
+            if (word != query) {
+                variations.add(word)
+            }
+        }
+
+        return variations.distinct()
     }
 
     private fun handleRecipeResult(result: Result<List<Recipe>>) {
