@@ -13,6 +13,9 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -28,6 +31,8 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var greetingText: TextView
     private lateinit var profileButton: ImageView
     private lateinit var loadingIndicator: LinearLayout
+    private lateinit var bottomNav: LinearLayout
+    private lateinit var headerSection: LinearLayout
     private val groceryItems = mutableListOf<GroceryItem>()
 
     private lateinit var firestoreRepository: FirestoreRepository
@@ -87,6 +92,9 @@ class DashboardActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_dashboard)
 
+        // Enable edge-to-edge display
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         auth = FirebaseAuth.getInstance()
         firestoreRepository = FirestoreRepository()
 
@@ -99,6 +107,7 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         initViews()
+        setupWindowInsets()
         setupRecyclerView()
         setupNavigation()
         setupFab()
@@ -121,6 +130,28 @@ class DashboardActivity : AppCompatActivity() {
 
         loadGroceryItems()
         setupGreeting()
+    }
+
+    private fun setupWindowInsets() {
+        // Handle bottom navigation adaptive padding
+        ViewCompat.setOnApplyWindowInsetsListener(bottomNav) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+
+            // Apply the bottom inset as padding
+            // Keep existing top padding (6dp), add system bottom inset
+            view.setPadding(
+                view.paddingLeft,
+                view.paddingTop,
+                view.paddingRight,
+                insets.bottom // This adapts to gesture vs button navigation
+            )
+
+            windowInsets
+        }
+    }
+
+    private fun dpToPx(dp: Int): Int {
+        return (dp * resources.displayMetrics.density).toInt()
     }
 
     private fun checkAndRequestNotificationPermission() {
@@ -181,6 +212,8 @@ class DashboardActivity : AppCompatActivity() {
         greetingText = findViewById(R.id.tv_greeting)
         profileButton = findViewById(R.id.iv_profile)
         loadingIndicator = findViewById(R.id.loading_indicator)
+        bottomNav = findViewById(R.id.bottom_nav)
+        headerSection = findViewById(R.id.header_section)
     }
 
     private fun setupRecyclerView() {
@@ -250,9 +283,9 @@ class DashboardActivity : AppCompatActivity() {
         val email = currentUser?.email
 
         val greeting = when {
-            !displayName.isNullOrEmpty() -> "Hello, $displayName 👋"
-            !email.isNullOrEmpty() -> "Hello, ${email.substringBefore("@")} 👋"
-            else -> "Hello, User 👋"
+            !displayName.isNullOrEmpty() -> "Hello, $displayName ðŸ'‹"
+            !email.isNullOrEmpty() -> "Hello, ${email.substringBefore("@")} ðŸ'‹"
+            else -> "Hello, User ðŸ'‹"
         }
 
         greetingText.text = greeting

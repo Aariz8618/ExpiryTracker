@@ -27,7 +27,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Hello, Guest 👋"
+            android:text="Hello, Guest "
             android:textSize="24sp"
             android:textColor="#2D3748"
             android:fontFamily="sans-serif-medium" />
@@ -153,8 +153,7 @@
         android:orientation="horizontal"
         android:background="@android:color/white"
         android:elevation="8dp"
-        android:paddingTop="6dp"
-        android:paddingBottom="44dp">
+        android:paddingTop="6dp">
 
         <!-- Home Tab -->
         <LinearLayout
