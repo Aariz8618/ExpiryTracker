@@ -81,12 +81,15 @@
             android:name=".SignupActivity"
             android:exported="false" />
         <activity
-            android:name=".CookingModeActivity"
-            android:theme="@style/Theme.ExpiryTracker" />
+            android:name=".PrivacyPolicyActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".FeedbackActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".CookingModeActivity"
+            android:theme="@style/Theme.ExpiryTracker" />
         <activity
             android:name=".SplashScreenActivity"
             android:exported="true">
