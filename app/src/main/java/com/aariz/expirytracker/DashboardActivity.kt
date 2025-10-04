@@ -217,7 +217,7 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         tabStats.setOnClickListener {
-            Toast.makeText(this, "Statistics coming soon!", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, StatisticsActivity::class.java))
         }
 
         tabRecipes.setOnClickListener {

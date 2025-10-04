@@ -9,7 +9,6 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
@@ -52,6 +51,10 @@
             android:name=".StatisticsActivity"
             android:exported="false" />
         <activity
+            android:name=".FilteredItemsActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".NotificationSettingsActivity"
             android:exported="false" />
         <activity
@@ -82,16 +85,16 @@
             android:exported="false" />
         <activity
             android:name=".CookingModeActivity"
+            android:exported="false"
             android:theme="@style/Theme.ExpiryTracker" />
         <activity
-
             android:name=".FeedbackActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
-
+        <activity
             android:name=".PrivacyPolicyActivity"
+            android:exported="false"
             android:screenOrientation="portrait" />
-
         <activity
             android:name=".SplashScreenActivity"
             android:exported="true">
