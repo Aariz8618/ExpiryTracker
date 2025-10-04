@@ -27,12 +27,23 @@ object CloudinaryManager {
         onSuccess: (String) -> Unit,
         onError: (String) -> Unit
     ) {
+        uploadImage(context, imageUri, "profile_images", "profile_images", onSuccess, onError)
+    }
+
+    fun uploadImage(
+        context: Context,
+        imageUri: Uri,
+        uploadPreset: String,
+        folder: String,
+        onSuccess: (String) -> Unit,
+        onError: (String) -> Unit
+    ) {
         init(context)
 
         try {
             MediaManager.get().upload(imageUri)
-                .unsigned("profile_images")
-                .option("folder", "profile_images")
+                .unsigned(uploadPreset)
+                .option("folder", folder)
                 .option("resource_type", "image")
                 .callback(object : UploadCallback {
                     override fun onStart(requestId: String) {
@@ -74,5 +85,14 @@ object CloudinaryManager {
             Log.e("Cloudinary", "Exception during upload setup: ${e.message}", e)
             onError("Failed to start upload: ${e.message}")
         }
+    }
+
+    fun uploadFeedbackScreenshot(
+        context: Context,
+        imageUri: Uri,
+        onSuccess: (String) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        uploadImage(context, imageUri, "profile_images", "feedback_screenshots", onSuccess, onError)
     }
 }

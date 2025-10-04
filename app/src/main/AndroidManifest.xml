@@ -84,8 +84,14 @@
             android:name=".CookingModeActivity"
             android:theme="@style/Theme.ExpiryTracker" />
         <activity
+
+            android:name=".FeedbackActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
             android:name=".PrivacyPolicyActivity"
             android:screenOrientation="portrait" />
+
         <activity
             android:name=".SplashScreenActivity"
             android:exported="true">

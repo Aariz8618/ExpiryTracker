@@ -67,10 +67,11 @@ dependencies {
     // Firebase BOM (Bill of Materials)
     implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
 
-    // Firebase Services (removed firebase-storage-ktx)
+    // Firebase Services
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-storage")  // Added back for FeedbackActivity
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
