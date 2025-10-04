@@ -20,7 +20,10 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:padding="16dp">
+            android:paddingTop="24dp"
+            android:paddingBottom="8dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="16dp">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_back"
@@ -322,7 +325,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Testing Section -->
+            <!-- Testing Section
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -330,9 +333,9 @@
                 android:text="Testing"
                 android:textColor="@color/gray_900"
                 android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textStyle="bold" /> -->
 
-            <!-- Test Notification Button -->
+            <!-- Test Notification Button
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_test_notification"
                 style="@style/Widget.Material3.Button.OutlinedButton"
@@ -341,9 +344,9 @@
                 android:layout_marginTop="12dp"
                 android:text="Send Test Notification"
                 app:icon="@drawable/ic_bell"
-                app:iconGravity="start" />
+                app:iconGravity="start" /> -->
 
-            <!-- Check Permission Button -->
+            <!-- Check Permission Button
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_check_permission"
                 style="@style/Widget.Material3.Button.OutlinedButton"
@@ -352,7 +355,7 @@
                 android:layout_marginTop="8dp"
                 android:text="Check Permission Status"
                 app:icon="@drawable/ic_settings"
-                app:iconGravity="start" />
+                app:iconGravity="start" /> -->
 
         </LinearLayout>
     </ScrollView>

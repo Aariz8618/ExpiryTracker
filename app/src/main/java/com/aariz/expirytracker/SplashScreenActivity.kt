@@ -10,9 +10,9 @@ import android.util.Log
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.LinearInterpolator
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.airbnb.lottie.LottieAnimationView
 import com.google.android.material.card.MaterialCardView
 import com.google.firebase.auth.FirebaseAuth
 
@@ -54,8 +54,7 @@ class SplashScreenActivity : AppCompatActivity() {
         val logoCard = findViewById<MaterialCardView>(R.id.logo_card)
         val appName = findViewById<TextView>(R.id.text_app_name)
         val subtitle = findViewById<TextView>(R.id.text_subtitle)
-        val clockContainer = findViewById<MaterialCardView>(R.id.clock_container)
-        val clockHands = findViewById<ImageView>(R.id.clock_hands)
+        val lottieClock = findViewById<LottieAnimationView>(R.id.lottie_clock)
         val loadingText = findViewById<TextView>(R.id.text_loading)
         val versionText = findViewById<TextView>(R.id.text_version)
         val circle1 = findViewById<View>(R.id.circle_1)
@@ -120,14 +119,15 @@ class SplashScreenActivity : AppCompatActivity() {
             start()
         }
 
-        // Clock container scale and fade
-        clockContainer.scaleX = 0.5f
-        clockContainer.scaleY = 0.5f
+        // Lottie clock animation with scale and fade
+        lottieClock.scaleX = 0.5f
+        lottieClock.scaleY = 0.5f
+
         AnimatorSet().apply {
             playTogether(
-                ObjectAnimator.ofFloat(clockContainer, View.ALPHA, 0f, 1f),
-                ObjectAnimator.ofFloat(clockContainer, View.SCALE_X, 0.5f, 1f),
-                ObjectAnimator.ofFloat(clockContainer, View.SCALE_Y, 0.5f, 1f)
+                ObjectAnimator.ofFloat(lottieClock, View.ALPHA, 0f, 1f),
+                ObjectAnimator.ofFloat(lottieClock, View.SCALE_X, 0.5f, 1f),
+                ObjectAnimator.ofFloat(lottieClock, View.SCALE_Y, 0.5f, 1f)
             )
             duration = 600
             startDelay = 1200
@@ -135,15 +135,9 @@ class SplashScreenActivity : AppCompatActivity() {
             start()
         }
 
-        // Rotate clock hands continuously
+        // Start Lottie animation after fade in
         Handler(Looper.getMainLooper()).postDelayed({
-            ObjectAnimator.ofFloat(clockHands, View.ROTATION, 0f, 360f).apply {
-                duration = 2000
-                repeatCount = ObjectAnimator.INFINITE
-                repeatMode = ObjectAnimator.RESTART
-                interpolator = LinearInterpolator()
-                start()
-            }
+            lottieClock.playAnimation()
         }, 1200)
 
         // Loading text fade with subtle pulse
@@ -153,7 +147,7 @@ class SplashScreenActivity : AppCompatActivity() {
             start()
         }
 
-        // Subtle pulse animation
+        // Subtle pulse animation for loading text
         Handler(Looper.getMainLooper()).postDelayed({
             ObjectAnimator.ofFloat(loadingText, View.ALPHA, 1f, 0.6f, 1f).apply {
                 duration = 1500

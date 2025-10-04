@@ -70,66 +70,69 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-
-
-    <!-- Content Area -->
-    <FrameLayout
+    <!-- Content Area with SwipeRefreshLayout -->
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh_layout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <!-- Recipes RecyclerView -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_recipes"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:padding="16dp"
-            android:layout_marginBottom="44dp"/>
+            android:layout_height="match_parent">
 
-        <!-- Loading Indicator -->
-        <ProgressBar
-            android:id="@+id/progress_bar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:indeterminateTint="@color/green_primary"
-            android:visibility="gone" />
+            <!-- Recipes RecyclerView -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_recipes"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:padding="16dp" />
 
-        <!-- Empty State -->
-        <LinearLayout
-            android:id="@+id/empty_state"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:visibility="gone"
-            android:padding="32dp">
-
-            <ImageView
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:src="@drawable/ic_recipe"
-                app:tint="@color/gray_300"
-                android:layout_marginBottom="16dp" />
-
-            <TextView
+            <!-- Loading Indicator -->
+            <ProgressBar
+                android:id="@+id/progress_bar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="No recipes found"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@color/gray_700"
-                android:layout_marginBottom="8dp" />
+                android:layout_gravity="center"
+                android:indeterminateTint="@color/green_primary"
+                android:visibility="gone" />
 
-            <TextView
+            <!-- Empty State -->
+            <LinearLayout
+                android:id="@+id/empty_state"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Try searching for something else"
-                android:textSize="14sp"
-                android:textColor="@color/gray_500"
-                android:gravity="center" />
-        </LinearLayout>
-    </FrameLayout>
+                android:layout_gravity="center"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:visibility="gone"
+                android:padding="32dp">
+
+                <ImageView
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:src="@drawable/ic_recipe"
+                    app:tint="@color/gray_300"
+                    android:layout_marginBottom="16dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="No recipes found"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/gray_700"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Try searching for something else"
+                    android:textSize="14sp"
+                    android:textColor="@color/gray_500"
+                    android:gravity="center" />
+            </LinearLayout>
+        </FrameLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </LinearLayout>

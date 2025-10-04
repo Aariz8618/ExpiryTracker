@@ -111,4 +111,9 @@ dependencies {
     // Cloudinary for image upload
     implementation("com.cloudinary:cloudinary-android:3.0.2")
     implementation("com.cloudinary:cloudinary-core:1.38.0")
+
+    // Lottie Animation Library
+    implementation("com.airbnb.android:lottie:6.1.0")
+
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 }

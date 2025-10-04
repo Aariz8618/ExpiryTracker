@@ -14,7 +14,6 @@
         android:layout_alignParentEnd="true"
         android:layout_marginTop="-100dp"
         android:layout_marginEnd="-100dp"
-        android:background="@drawable/circle_bg_1"
         android:alpha="0.3" />
 
     <View
@@ -25,7 +24,6 @@
         android:layout_alignParentStart="true"
         android:layout_marginBottom="-75dp"
         android:layout_marginStart="-75dp"
-        android:background="@drawable/circle_bg_2"
         android:alpha="0.3" />
 
     <!-- Main Content Container -->
@@ -43,20 +41,12 @@
             android:layout_width="140dp"
             android:layout_height="140dp"
             app:cardCornerRadius="70dp"
-            app:cardElevation="20dp"
             android:layout_marginBottom="40dp"
             app:cardBackgroundColor="#FFFFFF">
 
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
-
-                <!-- Gradient overlay for modern look -->
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/logo_gradient_overlay"
-                    android:alpha="0.1" />
 
                 <!-- Logo Icon (No rotation) -->
                 <ImageView
@@ -97,7 +87,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center"
-            android:layout_marginBottom="60dp">
+            android:layout_marginBottom="40dp">
 
             <TextView
                 android:id="@+id/text_subtitle"
@@ -113,46 +103,15 @@
 
         </LinearLayout>
 
-        <!-- Animated Clock Loading Indicator -->
-        <RelativeLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-
-            <!-- Clock Container with circular background -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/clock_container"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                app:cardCornerRadius="30dp"
-                app:cardBackgroundColor="@color/green_400"
-                android:alpha="0">
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:padding="12dp">
-
-                    <!-- Clock Face (static) -->
-                    <View
-                        android:id="@+id/clock_face"
-                        android:layout_width="60dp"
-                        android:layout_height="60dp"
-                        android:background="@drawable/clock_face" />
-
-                    <!-- Rotating Clock Hands -->
-                    <ImageView
-                        android:id="@+id/clock_hands"
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
-                        android:src="@drawable/clock_hands"
-                        android:contentDescription="Loading"
-                        android:scaleType="fitCenter" />
-
-                </RelativeLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-        </RelativeLayout>
+        <!-- Lottie Clock Animation -->
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/lottie_clock"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            app:lottie_rawRes="@raw/clock_loading2"
+            app:lottie_loop="true"
+            app:lottie_autoPlay="false"
+            android:alpha="0" />
 
         <!-- Loading Text -->
         <TextView
@@ -161,11 +120,11 @@
             android:layout_height="wrap_content"
             android:text="Loading your experience..."
             android:textSize="13sp"
-            android:textColor="#B0FFFFFF"
+            android:textColor="@color/gray_400"
             android:gravity="center"
             android:fontFamily="sans-serif-light"
             android:letterSpacing="0.1"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="16dp"
             android:alpha="0" />
 
     </LinearLayout>
@@ -183,24 +142,5 @@
         android:textColor="#80FFFFFF"
         android:fontFamily="sans-serif-light"
         android:alpha="0" />
-
-    <!-- Hidden tags (not used in modern design) -->
-    <TextView
-        android:id="@+id/tag_1"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone" />
-
-    <TextView
-        android:id="@+id/tag_2"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone" />
-
-    <TextView
-        android:id="@+id/tag_3"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone" />
 
 </RelativeLayout>

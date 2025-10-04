@@ -2,9 +2,13 @@ package com.aariz.expirytracker
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.method.HideReturnsTransformationMethod
+import android.text.method.PasswordTransformationMethod
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -13,6 +17,7 @@ import com.google.firebase.auth.FirebaseAuth
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
+    private var isPasswordVisible = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,10 +27,30 @@ class LoginActivity : AppCompatActivity() {
 
         val emailField = findViewById<EditText>(R.id.input_email)
         val passwordField = findViewById<EditText>(R.id.input_password)
-        val loginButton = findViewById<Button>(R.id.button_login)
-        val signupRedirect = findViewById<Button>(R.id.button_signup_redirect)
+        val loginButton = findViewById<LinearLayout>(R.id.button_login)
+        val loginButtonText = findViewById<TextView>(R.id.text_login)
+        val signupRedirect = findViewById<LinearLayout>(R.id.button_signup_redirect)
         val forgotPassword = findViewById<TextView>(R.id.text_forgot_password)
         val resendVerification = findViewById<TextView>(R.id.text_resend_verification)
+        val continueGuest = findViewById<TextView>(R.id.text_continue_guest)
+        val togglePasswordVisibility = findViewById<ImageView>(R.id.toggle_password_visibility)
+
+        // Toggle password visibility
+        togglePasswordVisibility.setOnClickListener {
+            if (isPasswordVisible) {
+                // Hide password
+                passwordField.transformationMethod = PasswordTransformationMethod.getInstance()
+                togglePasswordVisibility.setImageResource(R.drawable.ic_eye_off)
+                isPasswordVisible = false
+            } else {
+                // Show password
+                passwordField.transformationMethod = HideReturnsTransformationMethod.getInstance()
+                togglePasswordVisibility.setImageResource(R.drawable.ic_eye_on)
+                isPasswordVisible = true
+            }
+            // Move cursor to end of text
+            passwordField.setSelection(passwordField.text.length)
+        }
 
         loginButton.setOnClickListener {
             val email = emailField.text.toString().trim()
@@ -43,7 +68,7 @@ class LoginActivity : AppCompatActivity() {
 
             // Disable button to prevent multiple clicks
             loginButton.isEnabled = false
-            loginButton.text = "Signing In..."
+            loginButtonText.text = "Signing In..."
 
             signInWithEmail(email, password)
         }
@@ -60,6 +85,11 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            if (!isValidEmail(email)) {
+                Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             sendPasswordResetEmail(email)
         }
 
@@ -73,6 +103,13 @@ class LoginActivity : AppCompatActivity() {
             }
 
             resendEmailVerification(email, password)
+        }
+
+        continueGuest.setOnClickListener {
+            // Navigate to dashboard without authentication
+            Toast.makeText(this, "Continuing as guest", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, DashboardActivity::class.java))
+            finish()
         }
     }
 
@@ -126,10 +163,8 @@ class LoginActivity : AppCompatActivity() {
                 }
 
                 // Re-enable login button
-                findViewById<Button>(R.id.button_login).apply {
-                    isEnabled = true
-                    text = "Login"
-                }
+                findViewById<LinearLayout>(R.id.button_login).isEnabled = true
+                findViewById<TextView>(R.id.text_login).text = "Login"
             }
     }
 

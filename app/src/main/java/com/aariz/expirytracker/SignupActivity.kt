@@ -2,9 +2,12 @@ package com.aariz.expirytracker
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputType
 import android.util.Log
-import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AlertDialog
@@ -13,6 +16,8 @@ import com.google.firebase.auth.FirebaseAuth
 class SignupActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
+    private var isPasswordVisible = false
+    private var isConfirmPasswordVisible = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,8 +28,37 @@ class SignupActivity : AppCompatActivity() {
         val emailField = findViewById<EditText>(R.id.input_email)
         val passwordField = findViewById<EditText>(R.id.input_password)
         val confirmPasswordField = findViewById<EditText>(R.id.input_confirm_password)
-        val createAccountButton = findViewById<Button>(R.id.button_create_account)
-        val loginRedirect = findViewById<Button>(R.id.button_login_redirect)
+        val createAccountButton = findViewById<LinearLayout>(R.id.button_create_account)
+        val loginRedirect = findViewById<LinearLayout>(R.id.button_login_redirect)
+
+        // Password visibility toggles
+        val togglePasswordVisibility = findViewById<ImageView>(R.id.toggle_password_visibility)
+        val toggleConfirmPasswordVisibility = findViewById<ImageView>(R.id.toggle_confirm_password_visibility)
+
+        // Setup password visibility toggles
+        togglePasswordVisibility.setOnClickListener {
+            isPasswordVisible = !isPasswordVisible
+            if (isPasswordVisible) {
+                passwordField.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                togglePasswordVisibility.setImageResource(R.drawable.ic_eye_on)
+            } else {
+                passwordField.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                togglePasswordVisibility.setImageResource(R.drawable.ic_eye_off)
+            }
+            passwordField.setSelection(passwordField.text.length)
+        }
+
+        toggleConfirmPasswordVisibility.setOnClickListener {
+            isConfirmPasswordVisible = !isConfirmPasswordVisible
+            if (isConfirmPasswordVisible) {
+                confirmPasswordField.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                toggleConfirmPasswordVisibility.setImageResource(R.drawable.ic_eye_on)
+            } else {
+                confirmPasswordField.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                toggleConfirmPasswordVisibility.setImageResource(R.drawable.ic_eye_off)
+            }
+            confirmPasswordField.setSelection(confirmPasswordField.text.length)
+        }
 
         createAccountButton.setOnClickListener {
             val email = emailField.text.toString().trim()
@@ -64,15 +98,14 @@ class SignupActivity : AppCompatActivity() {
 
     private fun showEmailGuidanceDialog(email: String, password: String) {
         AlertDialog.Builder(this)
-            .setTitle("📧 Email Verification Required")
+            .setTitle("Email Verification Required")
             .setMessage(
                 """Before creating your account, please note:
 
 • A verification email will be sent to: $email
 • Check your SPAM/Junk folder if not in inbox
 • Gmail users: Also check Promotions tab
-• The email will come from: support
-@freshtrack-d3269.firebaseapp.com
+• The email will come from: support@freshtrack-d3269.firebaseapp.com
 
 The verification email may take 2-5 minutes to arrive."""
             )
@@ -85,9 +118,10 @@ The verification email may take 2-5 minutes to arrive."""
 
     private fun proceedWithAccountCreation(email: String, password: String) {
         // Disable button to prevent multiple clicks
-        findViewById<Button>(R.id.button_create_account).apply {
+        findViewById<LinearLayout>(R.id.button_create_account).apply {
             isEnabled = false
-            text = "Creating Account..."
+            isClickable = false
+            alpha = 0.6f
         }
 
         createAccountWithEmail(email, password)
@@ -139,7 +173,7 @@ The verification email may take 2-5 minutes to arrive."""
                     Log.w("SignupAuth", "sendEmailVerification failed", emailTask.exception)
 
                     AlertDialog.Builder(this)
-                        .setTitle("⚠️ Account Created")
+                        .setTitle("Account Created")
                         .setMessage("Your account was created but the verification email failed to send. You can try resending it from the login screen.")
                         .setPositiveButton("Go to Login") { _, _ ->
                             startActivity(Intent(this, LoginActivity::class.java))
@@ -153,28 +187,23 @@ The verification email may take 2-5 minutes to arrive."""
 
     private fun showEmailSentDialog(email: String) {
         AlertDialog.Builder(this)
-            .setTitle("✅ Account Created Successfully!")
+            .setTitle("Account Created Successfully!")
             .setMessage(
                 """Verification email sent to:
 $email
 
-📍 WHERE TO LOOK:
+WHERE TO LOOK:
 • Check your Inbox first
 • Then check SPAM/Junk folder  
-• Gmail: Check Promotions tab
+• Gmail: Check Promotions tab or Spam Folder
 • Outlook: Check Junk folder
 • Yahoo: Check Spam folder
 
-⏰ TIMING:
+TIMING:
 Email may take 2-5 minutes to arrive
 
-📧 SENDER:
-From: supporty@freshtrack-d3269.firebaseapp.com
-
-💡 TIP:
-Add this email to your contacts to prevent future emails from going to spam!
-
-You'll be redirected to login once you close this dialog."""
+SENDER:
+From: support@freshtrack-d3269.firebaseapp.com """
             )
             .setPositiveButton("Got It!") { _, _ ->
                 startActivity(Intent(this, LoginActivity::class.java))
@@ -188,9 +217,10 @@ You'll be redirected to login once you close this dialog."""
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
 
         // Re-enable button
-        findViewById<Button>(R.id.button_create_account).apply {
+        findViewById<LinearLayout>(R.id.button_create_account).apply {
             isEnabled = true
-            text = "Create Account"
+            isClickable = true
+            alpha = 1f
         }
     }
 
