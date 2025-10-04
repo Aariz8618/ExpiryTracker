@@ -94,7 +94,7 @@ class ItemDetailActivity : AppCompatActivity() {
         updateStatusDisplay(actualStatus, actualDaysLeft) // Use recalculated values
         updateTimelineVisuals(purchase, expiry, actualStatus) // Use recalculated status
         startCountdownTimer(expiry, actualStatus) // Use recalculated status
-        setupClickListeners()
+        setupClickListeners(actualStatus)
     }
 
     private fun calculateDaysLeft(expiryDate: String): Int {
@@ -302,17 +302,26 @@ class ItemDetailActivity : AppCompatActivity() {
         countdownRunnable?.let { handler.post(it) }
     }
 
-    private fun setupClickListeners() {
+    private fun setupClickListeners(actualStatus: String) {
         findViewById<MaterialButton>(R.id.btn_back).setOnClickListener {
             finish()
         }
 
-        findViewById<MaterialCardView>(R.id.button_edit).setOnClickListener {
-            editItem()
-        }
+        val editButton = findViewById<MaterialCardView>(R.id.button_edit)
+        val markUsedButton = findViewById<MaterialCardView>(R.id.button_mark_used)
 
-        findViewById<MaterialCardView>(R.id.button_mark_used).setOnClickListener {
-            showMarkAsUsedConfirmation()
+        // Hide edit and mark as used buttons if item is already used
+        if (actualStatus == "used") {
+            editButton.visibility = View.GONE
+            markUsedButton.visibility = View.GONE
+        } else {
+            editButton.setOnClickListener {
+                editItem()
+            }
+
+            markUsedButton.setOnClickListener {
+                showMarkAsUsedConfirmation()
+            }
         }
 
         findViewById<MaterialCardView>(R.id.button_delete).setOnClickListener {
