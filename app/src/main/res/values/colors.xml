@@ -15,6 +15,7 @@
     <color name="green_chip_bg">#E6F4EA</color>
     <color name="yellow_chip_bg">#FFF4CC</color>
     <color name="red_chip_bg">#FFE0E0</color>
+    <color name="yellow_500">#FFC107</color>
 
     <color name="gray_100">#F5F5F5</color>
     <color name="gray_300">#E0E0E0</color>

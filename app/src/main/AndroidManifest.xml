@@ -84,6 +84,10 @@
             android:name=".CookingModeActivity"
             android:theme="@style/Theme.ExpiryTracker" />
         <activity
+            android:name=".FeedbackActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
             android:name=".SplashScreenActivity"
             android:exported="true">
             <intent-filter>
