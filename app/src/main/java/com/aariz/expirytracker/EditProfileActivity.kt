@@ -1,16 +1,30 @@
 package com.aariz.expirytracker
 
+import android.Manifest
+import android.app.Activity
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import com.bumptech.glide.Glide
 import com.google.android.material.button.MaterialButton
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
+import java.io.File
+import java.io.IOException
 
 class EditProfileActivity : AppCompatActivity() {
 
@@ -20,6 +34,7 @@ class EditProfileActivity : AppCompatActivity() {
     // UI components
     private lateinit var btnBack: MaterialButton
     private lateinit var tvAvatarInitial: TextView
+    private lateinit var profileImageView: ImageView
     private lateinit var btnChangePhoto: TextView
     private lateinit var etName: EditText
     private lateinit var etEmail: EditText
@@ -31,10 +46,61 @@ class EditProfileActivity : AppCompatActivity() {
     private var originalName: String = ""
     private var originalEmail: String = ""
     private var originalPhone: String = ""
+    private var currentProfileImageUrl: String = ""
 
     // Email verification state
     private var emailVerificationSent: Boolean = false
     private var newEmailPending: String = ""
+
+    // Image handling
+    private var selectedImageUri: Uri? = null
+    private var currentPhotoPath: String = ""
+
+    // Permission launchers
+    private val cameraPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            openCamera()
+        } else {
+            Toast.makeText(this, "Camera permission is required", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private val storagePermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            openGallery()
+        } else {
+            Toast.makeText(this, "Storage permission is required", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Camera launcher
+    private val cameraLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val file = File(currentPhotoPath)
+            if (file.exists()) {
+                selectedImageUri = Uri.fromFile(file)
+                displaySelectedImage(selectedImageUri!!)
+            }
+        }
+    }
+
+    // Gallery launcher
+    private val galleryLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            result.data?.data?.let { uri ->
+                selectedImageUri = uri
+                displaySelectedImage(uri)
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,11 +110,12 @@ class EditProfileActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         firestore = FirebaseFirestore.getInstance()
 
+        // Initialize Cloudinary
+        CloudinaryManager.init(this)
+
         initViews()
         setupClickListeners()
         loadUserData()
-
-        // Listen for auth state changes (for email verification)
         setupAuthStateListener()
     }
 
@@ -61,6 +128,7 @@ class EditProfileActivity : AppCompatActivity() {
         etPhone = findViewById(R.id.et_phone)
         btnSave = findViewById(R.id.btn_save)
         btnCancel = findViewById(R.id.btn_cancel)
+        profileImageView = findViewById(R.id.profile_image_view)
     }
 
     private fun setupClickListeners() {
@@ -73,8 +141,7 @@ class EditProfileActivity : AppCompatActivity() {
         }
 
         btnChangePhoto.setOnClickListener {
-            // TODO: Implement photo change functionality
-            Toast.makeText(this, "Photo change functionality coming soon!", Toast.LENGTH_SHORT).show()
+            showImagePickerDialog()
         }
 
         btnSave.setOnClickListener {
@@ -82,14 +149,122 @@ class EditProfileActivity : AppCompatActivity() {
         }
     }
 
+    private fun showImagePickerDialog() {
+        val options = arrayOf("Take Photo", "Choose from Gallery", "Remove Photo")
+
+        AlertDialog.Builder(this)
+            .setTitle("Change Profile Picture")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> checkCameraPermissionAndOpen()
+                    1 -> checkStoragePermissionAndOpen()
+                    2 -> removeProfilePicture()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun checkCameraPermissionAndOpen() {
+        when {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                openCamera()
+            }
+            else -> {
+                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            }
+        }
+    }
+
+    private fun checkStoragePermissionAndOpen() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            when {
+                ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.READ_MEDIA_IMAGES
+                ) == PackageManager.PERMISSION_GRANTED -> {
+                    openGallery()
+                }
+                else -> {
+                    storagePermissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
+                }
+            }
+        } else {
+            when {
+                ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+                ) == PackageManager.PERMISSION_GRANTED -> {
+                    openGallery()
+                }
+                else -> {
+                    storagePermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                }
+            }
+        }
+    }
+
+    private fun openCamera() {
+        try {
+            val photoFile = createImageFile()
+            val photoUri = FileProvider.getUriForFile(
+                this,
+                "${applicationContext.packageName}.fileprovider",
+                photoFile
+            )
+
+            val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+                putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
+            }
+            cameraLauncher.launch(intent)
+        } catch (e: IOException) {
+            Toast.makeText(this, "Error creating image file: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun openGallery() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        galleryLauncher.launch(intent)
+    }
+
+    private fun createImageFile(): File {
+        val timeStamp = System.currentTimeMillis()
+        val storageDir = externalCacheDir
+        return File.createTempFile(
+            "JPEG_${timeStamp}_",
+            ".jpg",
+            storageDir
+        ).apply {
+            currentPhotoPath = absolutePath
+        }
+    }
+
+    private fun displaySelectedImage(uri: Uri) {
+        tvAvatarInitial.visibility = TextView.GONE
+        profileImageView.visibility = ImageView.VISIBLE
+        Glide.with(this)
+            .load(uri)
+            .circleCrop()
+            .into(profileImageView)
+    }
+
+    private fun removeProfilePicture() {
+        selectedImageUri = null
+        currentProfileImageUrl = ""
+        tvAvatarInitial.visibility = TextView.VISIBLE
+        profileImageView.visibility = ImageView.GONE
+        Toast.makeText(this, "Profile picture will be removed", Toast.LENGTH_SHORT).show()
+    }
+
     private fun setupAuthStateListener() {
         auth.addAuthStateListener { firebaseAuth ->
             val user = firebaseAuth.currentUser
             if (user != null && emailVerificationSent && newEmailPending.isNotEmpty()) {
-                // Reload user to get updated verification status
                 user.reload().addOnCompleteListener { reloadTask ->
                     if (reloadTask.isSuccessful && user.isEmailVerified) {
-                        // Email is now verified, proceed with profile update
                         Toast.makeText(this, "Email verified! Updating profile...", Toast.LENGTH_SHORT).show()
                         completeProfileUpdate()
                     }
@@ -101,17 +276,13 @@ class EditProfileActivity : AppCompatActivity() {
     private fun loadUserData() {
         val currentUser = auth.currentUser
         if (currentUser != null) {
-            // Load data from Firebase Auth
             originalEmail = currentUser.email ?: ""
             originalName = currentUser.displayName ?: ""
 
             etEmail.setText(originalEmail)
             etName.setText(originalName)
-
-            // Update avatar initial
             updateAvatarInitial(originalName)
 
-            // Load additional data from Firestore
             loadFirestoreData(currentUser.uid)
         } else {
             Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
@@ -126,6 +297,16 @@ class EditProfileActivity : AppCompatActivity() {
                 if (document.exists()) {
                     originalPhone = document.getString("phone") ?: ""
                     etPhone.setText(originalPhone)
+
+                    currentProfileImageUrl = document.getString("profileImageUrl") ?: ""
+                    if (currentProfileImageUrl.isNotEmpty()) {
+                        tvAvatarInitial.visibility = TextView.GONE
+                        profileImageView.visibility = ImageView.VISIBLE
+                        Glide.with(this)
+                            .load(currentProfileImageUrl)
+                            .circleCrop()
+                            .into(profileImageView)
+                    }
                 }
             }
             .addOnFailureListener { e ->
@@ -147,7 +328,6 @@ class EditProfileActivity : AppCompatActivity() {
         val email = etEmail.text.toString().trim()
         val phone = etPhone.text.toString().trim()
 
-        // Validation
         if (name.isEmpty()) {
             Toast.makeText(this, "Name cannot be empty", Toast.LENGTH_SHORT).show()
             etName.requestFocus()
@@ -168,73 +348,86 @@ class EditProfileActivity : AppCompatActivity() {
 
         val currentUser = auth.currentUser
         if (currentUser != null) {
-            // Check if email is changing
-            if (email != originalEmail) {
+            if (selectedImageUri != null) {
+                uploadProfileImage(name, email, phone)
+            } else if (email != originalEmail) {
                 showEmailChangeConfirmation(name, email, phone)
             } else {
-                // Email not changing, proceed with normal update
-                updateProfile(name, email, phone)
+                updateProfile(name, email, phone, currentProfileImageUrl)
             }
         } else {
             Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
         }
     }
 
-    private fun showEmailChangeConfirmation(name: String, email: String, phone: String) {
+    private fun uploadProfileImage(name: String, email: String, phone: String) {
+        btnSave.text = "Uploading image..."
+        btnSave.isEnabled = false
+
+        CloudinaryManager.uploadImage(
+            context = this,
+            imageUri = selectedImageUri!!,
+            onSuccess = { imageUrl ->
+                runOnUiThread {
+                    if (email != originalEmail) {
+                        showEmailChangeConfirmation(name, email, phone, imageUrl)
+                    } else {
+                        updateProfile(name, email, phone, imageUrl)
+                    }
+                }
+            },
+            onError = { error ->
+                runOnUiThread {
+                    Toast.makeText(this, "Failed to upload image: $error", Toast.LENGTH_SHORT).show()
+                    resetSaveButton()
+                }
+            }
+        )
+    }
+
+    private fun showEmailChangeConfirmation(name: String, email: String, phone: String, imageUrl: String = currentProfileImageUrl) {
         AlertDialog.Builder(this)
             .setTitle("Email Verification Required")
             .setMessage("You're changing your email address to: $email\n\nA verification email will be sent to this new address. You must verify it before the changes can be saved.\n\nProceed?")
             .setPositiveButton("Send Verification") { _, _ ->
-                sendEmailVerification(name, email, phone)
+                sendEmailVerification(name, email, phone, imageUrl)
             }
             .setNegativeButton("Cancel") { dialog, _ ->
                 dialog.dismiss()
+                resetSaveButton()
             }
             .show()
     }
 
-    private fun sendEmailVerification(name: String, email: String, phone: String) {
-        // Show loading state
+    private fun sendEmailVerification(name: String, email: String, phone: String, imageUrl: String) {
         btnSave.text = "Sending verification..."
         btnSave.isEnabled = false
 
         val currentUser = auth.currentUser
         if (currentUser != null) {
-            // Store pending data
             newEmailPending = email
 
-            // Update email in Firebase Auth (this will automatically send verification email)
-            currentUser.updateEmail(email)
-                .addOnCompleteListener { emailTask ->
-                    if (emailTask.isSuccessful) {
-                        // Send verification email
-                        currentUser.sendEmailVerification()
-                            .addOnCompleteListener { verificationTask ->
-                                if (verificationTask.isSuccessful) {
-                                    emailVerificationSent = true
-                                    showVerificationPendingDialog(name, email, phone)
-                                } else {
-                                    Toast.makeText(this, "Failed to send verification email: ${verificationTask.exception?.message}", Toast.LENGTH_LONG).show()
-                                    resetSaveButton()
-                                }
-                            }
+            currentUser.verifyBeforeUpdateEmail(email)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        emailVerificationSent = true
+                        showVerificationPendingDialog(name, email, phone, imageUrl)
                     } else {
-                        Toast.makeText(this, "Failed to update email: ${emailTask.exception?.message}", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this, "Failed to send verification: ${task.exception?.message}", Toast.LENGTH_LONG).show()
                         resetSaveButton()
                     }
                 }
         }
     }
 
-    private fun showVerificationPendingDialog(name: String, email: String, phone: String) {
+    private fun showVerificationPendingDialog(name: String, email: String, phone: String, imageUrl: String) {
         AlertDialog.Builder(this)
             .setTitle("Verification Email Sent")
             .setMessage("A verification email has been sent to: $email\n\nPlease check your email and click the verification link. Once verified, return to this screen and tap 'Save Changes' again.")
             .setPositiveButton("I've Verified") { _, _ ->
-                checkEmailVerificationAndSave(name, email, phone)
+                checkEmailVerificationAndSave(name, email, phone, imageUrl)
             }
             .setNegativeButton("Cancel") { _, _ ->
-                // Reset email to original
                 etEmail.setText(originalEmail)
                 newEmailPending = ""
                 emailVerificationSent = false
@@ -244,26 +437,22 @@ class EditProfileActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun checkEmailVerificationAndSave(name: String, email: String, phone: String) {
+    private fun checkEmailVerificationAndSave(name: String, email: String, phone: String, imageUrl: String) {
         val currentUser = auth.currentUser
         if (currentUser != null) {
-            // Show loading
             btnSave.text = "Verifying..."
             btnSave.isEnabled = false
 
-            // Reload user to get updated verification status
             currentUser.reload().addOnCompleteListener { reloadTask ->
                 if (reloadTask.isSuccessful) {
                     if (currentUser.isEmailVerified) {
-                        // Email is verified, proceed with update
-                        completeProfileUpdate(name, email, phone)
+                        completeProfileUpdate(name, email, phone, imageUrl)
                     } else {
-                        // Email not yet verified
                         AlertDialog.Builder(this)
                             .setTitle("Email Not Verified")
                             .setMessage("Your email address has not been verified yet. Please check your email and click the verification link, then try again.")
                             .setPositiveButton("Try Again") { _, _ ->
-                                checkEmailVerificationAndSave(name, email, phone)
+                                checkEmailVerificationAndSave(name, email, phone, imageUrl)
                             }
                             .setNegativeButton("Cancel") { _, _ ->
                                 resetSaveButton()
@@ -278,31 +467,33 @@ class EditProfileActivity : AppCompatActivity() {
         }
     }
 
-    private fun completeProfileUpdate(name: String = "", email: String = "", phone: String = "") {
+    private fun completeProfileUpdate(name: String = "", email: String = "", phone: String = "", imageUrl: String = currentProfileImageUrl) {
         val finalName = if (name.isEmpty()) etName.text.toString().trim() else name
         val finalEmail = if (email.isEmpty()) etEmail.text.toString().trim() else email
         val finalPhone = if (phone.isEmpty()) etPhone.text.toString().trim() else phone
 
-        updateProfile(finalName, finalEmail, finalPhone)
+        updateProfile(finalName, finalEmail, finalPhone, imageUrl)
     }
 
-    private fun updateProfile(name: String, email: String, phone: String) {
-        // Show loading state
+    private fun updateProfile(name: String, email: String, phone: String, imageUrl: String) {
         btnSave.text = "Saving..."
         btnSave.isEnabled = false
 
         val currentUser = auth.currentUser
         if (currentUser != null) {
-            // Update display name in Firebase Auth
             val profileUpdates = UserProfileChangeRequest.Builder()
                 .setDisplayName(name)
+                .apply {
+                    if (imageUrl.isNotEmpty()) {
+                        setPhotoUri(Uri.parse(imageUrl))
+                    }
+                }
                 .build()
 
             currentUser.updateProfile(profileUpdates)
                 .addOnCompleteListener { profileTask ->
                     if (profileTask.isSuccessful) {
-                        // Update Firestore data
-                        updateFirestoreProfile(currentUser.uid, name, email, phone)
+                        updateFirestoreProfile(currentUser.uid, name, email, phone, imageUrl)
                     } else {
                         Toast.makeText(this, "Failed to update profile: ${profileTask.exception?.message}", Toast.LENGTH_SHORT).show()
                         resetSaveButton()
@@ -314,11 +505,12 @@ class EditProfileActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateFirestoreProfile(userId: String, name: String, email: String, phone: String) {
+    private fun updateFirestoreProfile(userId: String, name: String, email: String, phone: String, imageUrl: String) {
         val userProfile = hashMapOf(
             "name" to name,
             "email" to email,
             "phone" to phone,
+            "profileImageUrl" to imageUrl,
             "updatedAt" to com.google.firebase.Timestamp.now()
         )
 
@@ -327,21 +519,17 @@ class EditProfileActivity : AppCompatActivity() {
             .addOnSuccessListener {
                 Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show()
 
-                // Update original values
                 originalName = name
                 originalEmail = email
                 originalPhone = phone
+                currentProfileImageUrl = imageUrl
 
-                // Reset verification states
                 emailVerificationSent = false
                 newEmailPending = ""
 
-                // Update avatar
                 updateAvatarInitial(name)
-
                 resetSaveButton()
 
-                // Set result and finish
                 setResult(RESULT_OK)
                 finish()
             }
@@ -358,7 +546,6 @@ class EditProfileActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        // Clean up any pending verification states if user leaves
         emailVerificationSent = false
         newEmailPending = ""
     }

@@ -20,7 +20,10 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:padding="16dp">
+            android:paddingTop="24dp"
+            android:paddingBottom="8dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="16dp">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_back"
@@ -39,8 +42,8 @@
                 android:layout_height="wrap_content"
                 android:text="Notifications"
                 android:textStyle="bold"
-                android:textSize="20sp"
-                android:textColor="@color/green_primary"
+                android:textSize="22sp"
+                android:textColor="@color/black"
                 android:layout_marginLeft="8dp" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
@@ -204,6 +207,7 @@
                             android:focusable="false"
                             android:clickable="true"
                             android:padding="16dp" />
+
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -320,6 +324,39 @@
                         android:textColor="@color/gray_700" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
+
+            <!-- Testing Section
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="Testing"
+                android:textColor="@color/gray_900"
+                android:textSize="18sp"
+                android:textStyle="bold" /> -->
+
+            <!-- Test Notification Button
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_test_notification"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Send Test Notification"
+                app:icon="@drawable/ic_bell"
+                app:iconGravity="start" /> -->
+
+            <!-- Check Permission Button
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_check_permission"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Check Permission Status"
+                app:icon="@drawable/ic_settings"
+                app:iconGravity="start" /> -->
+
         </LinearLayout>
     </ScrollView>
 

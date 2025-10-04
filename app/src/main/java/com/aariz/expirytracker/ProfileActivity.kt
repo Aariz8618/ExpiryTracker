@@ -2,12 +2,14 @@ package com.aariz.expirytracker
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.bumptech.glide.Glide
 import com.google.android.material.button.MaterialButton
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -30,6 +32,9 @@ class ProfileActivity : AppCompatActivity() {
     private lateinit var btnEditProfile: LinearLayout
     private lateinit var btnChangePassword: LinearLayout
     private lateinit var btnLogout: LinearLayout
+    private lateinit var profileImageView: ImageView
+
+
 
     // Activity Result Launcher for Edit Profile
     private val editProfileLauncher = registerForActivityResult(
@@ -40,6 +45,7 @@ class ProfileActivity : AppCompatActivity() {
             loadUserData()
         }
     }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,6 +77,7 @@ class ProfileActivity : AppCompatActivity() {
         btnEditProfile = findViewById(R.id.btn_edit_profile)
         btnChangePassword = findViewById(R.id.btn_change_password)
         btnLogout = findViewById(R.id.btn_logout)
+        profileImageView = findViewById(R.id.profile_image_view)
     }
 
     private fun setupClickListeners() {
@@ -142,12 +149,26 @@ class ProfileActivity : AppCompatActivity() {
                         tvPhoneNumber.text = "Not provided"
                     }
 
-                    // Load name from Firestore if available (it might be more up-to-date)
+                    // Load name from Firestore if available
                     val firestoreName = document.getString("name")
                     if (!firestoreName.isNullOrEmpty()) {
                         tvUserName.text = firestoreName
                         tvName.text = firestoreName
                         tvAvatarInitial.text = firestoreName.firstOrNull()?.uppercase() ?: "U"
+                    }
+
+                    // Load profile image URL
+                    val profileImageUrl = document.getString("profileImageUrl")
+                    if (!profileImageUrl.isNullOrEmpty()) {
+                        tvAvatarInitial.visibility = TextView.GONE
+                        profileImageView.visibility = ImageView.VISIBLE
+                        Glide.with(this)
+                            .load(profileImageUrl)
+                            .circleCrop()
+                            .into(profileImageView)
+                    } else {
+                        tvAvatarInitial.visibility = TextView.VISIBLE
+                        profileImageView.visibility = ImageView.GONE
                     }
                 } else {
                     tvPhoneNumber.text = "Not provided"

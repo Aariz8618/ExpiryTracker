@@ -1,0 +1,10 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <!-- Transparent inside -->
+    <solid android:color="@android:color/transparent" />
+
+    <!-- Border outline -->
+    <stroke
+        android:width="2dp"
+        android:color="@color/gray_400" />  <!-- change to your color -->
+</shape>

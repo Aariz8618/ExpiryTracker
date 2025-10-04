@@ -57,6 +57,7 @@
             android:padding="16dp">
 
             <!-- Profile Header Section -->
+            <!-- Profile Header Section - Replace in activity_profile.xml -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -85,6 +86,14 @@
                         android:textSize="56sp"
                         android:textStyle="bold"
                         android:textColor="@android:color/white" />
+
+                    <!-- Add ImageView for profile picture -->
+                    <ImageView
+                        android:id="@+id/profile_image_view"
+                        android:layout_width="96dp"
+                        android:layout_height="96dp"
+                        android:visibility="gone"
+                        android:scaleType="centerCrop" />
 
                 </FrameLayout>
 

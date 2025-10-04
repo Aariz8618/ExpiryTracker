@@ -2,58 +2,54 @@ package com.aariz.expirytracker
 
 import android.content.Context
 import android.util.Log
-import androidx.work.CoroutineWorker
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
-import androidx.work.WorkerParameters
+import androidx.work.*
 import java.util.concurrent.TimeUnit
 
 class CacheCleanupWorker(
-    appContext: Context,
-    workerParams: WorkerParameters
-) : CoroutineWorker(appContext, workerParams) {
-
-    override suspend fun doWork(): Result {
-        return try {
-            Log.d("CacheCleanupWorker", "Starting cache cleanup...")
-
-            val productCacheRepository = ProductCacheRepository()
-            val result = productCacheRepository.clearExpiredCache()
-
-            if (result.isSuccess) {
-                Log.d("CacheCleanupWorker", "Cache cleanup completed successfully")
-                Result.success()
-            } else {
-                Log.e("CacheCleanupWorker", "Cache cleanup failed: ${result.exceptionOrNull()?.message}")
-                Result.retry()
-            }
-        } catch (e: Exception) {
-            Log.e("CacheCleanupWorker", "Cache cleanup worker failed", e)
-            Result.failure()
-        }
-    }
+    context: Context,
+    params: WorkerParameters
+) : CoroutineWorker(context, params) {
 
     companion object {
+        private const val TAG = "CacheCleanupWorker"
         private const val WORK_NAME = "cache_cleanup_work"
+        private const val CLEANUP_INTERVAL_DAYS = 7L
 
         fun schedulePeriodicCleanup(context: Context) {
             val cleanupRequest = PeriodicWorkRequestBuilder<CacheCleanupWorker>(
-                7, TimeUnit.DAYS // Run weekly
-            ).build()
+                CLEANUP_INTERVAL_DAYS, TimeUnit.DAYS
+            )
+                .setConstraints(
+                    Constraints.Builder()
+                        .setRequiresBatteryNotLow(true)
+                        .build()
+                )
+                .build()
 
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
                 WORK_NAME,
                 ExistingPeriodicWorkPolicy.KEEP,
                 cleanupRequest
             )
-
-            Log.d("CacheCleanupWorker", "Scheduled periodic cache cleanup")
+            Log.d(TAG, "Cache cleanup scheduled")
         }
+    }
 
-        fun cancelPeriodicCleanup(context: Context) {
-            WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
-            Log.d("CacheCleanupWorker", "Cancelled periodic cache cleanup")
+    override suspend fun doWork(): Result {
+        return try {
+            Log.d(TAG, "Starting cache cleanup")
+
+            // Clean app cache
+            applicationContext.cacheDir.deleteRecursively()
+
+            // Clean external cache if available
+            applicationContext.externalCacheDir?.deleteRecursively()
+
+            Log.d(TAG, "Cache cleanup completed successfully")
+            Result.success()
+        } catch (e: Exception) {
+            Log.e(TAG, "Cache cleanup failed", e)
+            Result.failure()
         }
     }
 }
