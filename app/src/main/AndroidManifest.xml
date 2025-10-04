@@ -84,6 +84,9 @@
             android:name=".CookingModeActivity"
             android:theme="@style/Theme.ExpiryTracker" />
         <activity
+            android:name=".PrivacyPolicyActivity"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".SplashScreenActivity"
             android:exported="true">
             <intent-filter>

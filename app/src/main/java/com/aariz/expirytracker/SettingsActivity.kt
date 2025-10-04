@@ -75,7 +75,7 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         rowPrivacy.setOnClickListener {
-            Toast.makeText(this, "Privacy Policy coming soon", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, PrivacyPolicyActivity::class.java))
         }
 
         rowSupport.setOnClickListener {
