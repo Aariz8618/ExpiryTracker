@@ -9,6 +9,7 @@ import android.view.View
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.FirebaseAuth
@@ -64,6 +65,10 @@ class FeedbackActivity : AppCompatActivity() {
         // Initialize Firebase
         auth = FirebaseAuth.getInstance()
         firestore = FirebaseFirestore.getInstance()
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        findViewById<View>(R.id.header_section).applyHeaderInsets()
+        findViewById<View>(R.id.bottom_bar).applyBottomNavInsets()
 
         // Initialize Cloudinary
         CloudinaryManager.init(this)

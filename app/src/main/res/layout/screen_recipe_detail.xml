@@ -13,16 +13,16 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         app:cardCornerRadius="0dp"
-        app:cardElevation="2dp"
+        app:strokeColor="@color/white"
         app:cardBackgroundColor="@color/white">
 
         <LinearLayout
+            android:id="@+id/header_section"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingLeft="8dp"
-            android:paddingTop="24dp"
             android:paddingRight="16dp"
             android:paddingBottom="8dp">
 
@@ -34,7 +34,7 @@
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 app:icon="@drawable/left_arrow"
-                app:iconSize="20dp"
+                app:iconSize="24dp"
                 app:iconTint="@color/green_primary" />
 
             <TextView
@@ -63,7 +63,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingBottom="16dp">
+            android:paddingBottom="16dp"
+            android:background="@color/white">
 
             <!-- Title Card -->
             <com.google.android.material.card.MaterialCardView

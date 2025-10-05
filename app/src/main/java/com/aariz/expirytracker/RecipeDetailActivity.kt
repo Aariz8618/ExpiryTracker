@@ -7,6 +7,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
 import com.google.android.material.button.MaterialButton
 
 class RecipeDetailActivity : AppCompatActivity() {
@@ -16,6 +17,10 @@ class RecipeDetailActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_recipe_detail)
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        findViewById<View>(R.id.header_section).applyHeaderInsets()
+        findViewById<View>(R.id.bottom_bar).applyBottomNavInsets()
 
         setupBackButton()
         loadRecipeData()

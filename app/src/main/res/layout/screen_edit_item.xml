@@ -12,15 +12,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardCornerRadius="0dp"
-        app:cardElevation="0dp"
+        app:strokeColor="@color/white"
         app:cardBackgroundColor="@color/white">
 
         <LinearLayout
+            android:id="@+id/header_section"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingTop="24dp"
             android:paddingBottom="8dp"
             android:paddingLeft="8dp"
             android:paddingRight="16dp">
@@ -329,8 +329,7 @@
         android:elevation="8dp"
         android:paddingLeft="20dp"
         android:paddingRight="20dp"
-        android:paddingTop="16dp"
-        android:paddingBottom="44dp">
+        android:paddingTop="16dp">
 
         <!-- Update button -->
         <LinearLayout

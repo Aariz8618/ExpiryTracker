@@ -51,7 +51,7 @@
             android:name=".StatisticsActivity"
             android:exported="false" />
         <activity
-            android:name=".FilteredItemsActivity"
+            android:name=".com.aariz.expirytracker.FilteredItemsActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity

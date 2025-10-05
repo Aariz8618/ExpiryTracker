@@ -7,4 +7,25 @@
         <item name="android:letterSpacing">0</item>
         <item name="android:fontFamily">sans-serif</item>
     </style>
+
+    <!-- Custom Alert Dialog Style -->
+    <style name="CustomAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <!-- Dialog background color -->
+        <item name="android:background">@drawable/dialog_background</item>
+        <item name="backgroundTint">@color/white</item>
+
+        <!-- Title text color -->
+        <item name="android:textColorPrimary">@color/green_primary</item>
+
+        <!-- Message and item text color -->
+        <item name="android:textColor">@color/gray_800</item>
+
+        <!-- Button colors -->
+        <item name="colorPrimary">@color/green_primary</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+
+        <!-- Checkbox colors -->
+        <item name="colorControlActivated">@color/green_primary</item>
+        <item name="colorControlNormal">@color/gray_400</item>
+    </style>
 </resources>

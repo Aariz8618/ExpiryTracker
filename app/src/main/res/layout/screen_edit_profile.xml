@@ -8,10 +8,10 @@
 
     <!-- Top App Bar -->
     <LinearLayout
+        android:id="@+id/header_section"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingTop="24dp"
         android:paddingBottom="8dp"
         android:paddingLeft="8dp"
         android:paddingRight="16dp"
@@ -52,7 +52,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="24dp">
+            android:padding="24dp"
+            android:background="@color/white">
 
             <!-- Profile Picture Section -->
             <LinearLayout
@@ -76,7 +77,7 @@
                         <View
                             android:layout_width="100dp"
                             android:layout_height="100dp"
-                            android:background="@drawable/circle_icon_bg" />
+                            android:background="@drawable/circle_icon_bg2" />
 
                         <TextView
                             android:id="@+id/tv_avatar_initial"
@@ -84,7 +85,7 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center"
                             android:text="G"
-                            android:textSize="36sp"
+                            android:textSize="56sp"
                             android:textStyle="bold"
                             android:textColor="@android:color/white" />
 
@@ -106,14 +107,14 @@
                         android:layout_marginEnd="4dp"
                         android:layout_marginBottom="4dp"
                         android:background="@drawable/circle_icon_bg"
-                        android:backgroundTint="@color/green_primary">
+                        android:backgroundTint="@color/green_50">
 
                         <ImageView
                             android:layout_width="16dp"
                             android:layout_height="16dp"
                             android:layout_gravity="center"
                             android:src="@drawable/ic_camera"
-                            app:tint="@android:color/white" />
+                            app:tint="@color/black" />
 
                     </FrameLayout>
 

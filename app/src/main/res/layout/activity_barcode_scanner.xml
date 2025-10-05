@@ -13,7 +13,7 @@
         android:id="@+id/preview_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/bottom_controls"
+        app:layout_constraintBottom_toTopOf="@id/bottom_bar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -44,13 +44,12 @@
 
     <!-- Bottom Controls -->
     <LinearLayout
-        android:id="@+id/bottom_controls"
+        android:id="@+id/bottom_bar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
         android:paddingTop="16dp"
-        android:paddingBottom="44dp"
         android:paddingLeft="16dp"
         android:paddingRight="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -79,7 +78,7 @@
 
     <!-- Enhanced Top bar with GS1 support indicator -->
     <LinearLayout
-        android:id="@+id/top_bar"
+        android:id="@+id/header_section"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -88,7 +87,6 @@
         android:paddingVertical="16dp"
         android:background="@drawable/rounded_background_semi_transparent"
         android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="32dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">

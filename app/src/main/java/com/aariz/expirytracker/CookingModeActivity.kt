@@ -20,6 +20,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 
 import java.util.*
 
@@ -66,6 +67,10 @@ class CookingModeActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         checkAudioPermission()
         // Keep screen awake during cooking
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        findViewById<View>(R.id.header_section).applyHeaderInsets()
+        findViewById<View>(R.id.bottom_bar).applyBottomNavInsets()
 
         initializeViews()
         loadData()

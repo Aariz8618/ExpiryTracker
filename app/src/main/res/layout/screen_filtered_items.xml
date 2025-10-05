@@ -13,15 +13,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardCornerRadius="0dp"
-        app:cardElevation="2dp"
-        app:cardBackgroundColor="@color/gray_50">
+        app:strokeColor="@color/white"
+        app:cardBackgroundColor="@color/white">
 
         <LinearLayout
+            android:id="@+id/header_section"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:padding="16dp">
+            android:paddingBottom="8dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="16dp">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_back_filtered"
@@ -40,8 +43,7 @@
                 android:layout_height="wrap_content"
                 android:text="Filtered Items"
                 android:textStyle="bold"
-                android:textSize="18sp"
-                android:textColor="@color/green_primary"
+                android:textSize="22sp"
                 android:layout_marginLeft="8dp" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
@@ -50,7 +52,8 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/header_section_filtered">
+        android:layout_below="@id/header_section_filtered"
+        android:background="@color/white">
 
         <!-- Items List -->
         <androidx.recyclerview.widget.RecyclerView

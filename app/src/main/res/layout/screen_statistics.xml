@@ -12,15 +12,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardCornerRadius="0dp"
-        app:cardElevation="2dp"
-        app:cardBackgroundColor="@color/gray_50">
+        app:strokeColor="@color/white"
+        app:cardBackgroundColor="@color/white">
 
         <LinearLayout
+            android:id="@+id/header_section"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:padding="16dp">
+            android:paddingBottom="8dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="16dp">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_back"
@@ -37,10 +40,9 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Your Food Stats 🍽"
+                android:text="Your Food Stats "
                 android:textStyle="bold"
-                android:textSize="18sp"
-                android:textColor="@color/green_primary"
+                android:textSize="22sp"
                 android:layout_marginLeft="8dp" />
 
             <com.google.android.material.button.MaterialButton
@@ -50,9 +52,9 @@
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 app:icon="@drawable/ic_share"
-                app:iconTint="@android:color/white"
+                app:iconTint="@color/black"
                 app:iconSize="20dp"
-                app:backgroundTint="@color/green_primary"
+                app:backgroundTint="@color/white"
                 app:cornerRadius="24dp"
                 style="@style/Widget.Material3.Button.Icon" />
         </LinearLayout>
@@ -67,7 +69,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="16dp"
+            android:background="@color/white">
 
             <!-- Summary Cards -->
             <LinearLayout
@@ -87,7 +90,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground"
-                    app:cardBackgroundColor="@color/green_primary">
+                    app:cardBackgroundColor="#FF9800">
 
                     <LinearLayout
                         android:layout_width="match_parent"

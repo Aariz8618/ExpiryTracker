@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.view.View
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -13,6 +14,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.materialswitch.MaterialSwitch
@@ -53,6 +55,10 @@ class NotificationSettingsActivity : AppCompatActivity() {
 
         prefs = getSharedPreferences("notification_prefs", MODE_PRIVATE)
         notificationHelper = NotificationHelper(this)
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        findViewById<View>(R.id.header_section).applyHeaderInsets()
+        findViewById<View>(R.id.bottom_bar).applyBottomNavInsets()
 
         initViews()
         setupClickListeners()

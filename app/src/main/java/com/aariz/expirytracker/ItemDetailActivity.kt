@@ -12,6 +12,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
@@ -49,6 +50,10 @@ class ItemDetailActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_item_detail)
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        findViewById<View>(R.id.header_section).applyHeaderInsets()
+        findViewById<View>(R.id.bottom_bar).applyBottomNavInsets()
 
         firestoreRepository = FirestoreRepository()
 

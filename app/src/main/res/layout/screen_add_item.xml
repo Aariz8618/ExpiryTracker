@@ -12,15 +12,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardCornerRadius="0dp"
-        app:cardElevation="0dp"
+        app:strokeColor="@color/white"
         app:cardBackgroundColor="@color/white">
 
         <LinearLayout
+            android:id="@+id/header_section"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingTop="24dp"
             android:paddingBottom="8dp"
             android:paddingLeft="8dp"
             android:paddingRight="16dp">
@@ -33,7 +33,7 @@
                 android:insetBottom="0dp"
                 app:icon="@drawable/left_arrow"
                 app:iconTint="@color/green_primary"
-                app:iconSize="20dp"
+                app:iconSize="24dp"
                 style="@style/Widget.Material3.Button.IconButton" />
 
             <TextView
@@ -60,7 +60,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:padding="20dp"
+            android:background="@color/white">
 
             <!-- Barcode Info Section (Initially Hidden) -->
             <LinearLayout
@@ -405,8 +406,7 @@
         android:elevation="8dp"
         android:paddingLeft="20dp"
         android:paddingRight="20dp"
-        android:paddingTop="16dp"
-        android:paddingBottom="44dp">
+        android:paddingTop="16dp">
 
         <!-- Save button with loading state support -->
         <LinearLayout

@@ -8,6 +8,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.FirebaseAuth
@@ -32,6 +33,9 @@ class SettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_settings)
 
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        findViewById<View>(R.id.header_section).applyHeaderInsets()
         auth = FirebaseAuth.getInstance()
 
         initViews()

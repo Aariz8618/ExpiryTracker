@@ -10,6 +10,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import android.widget.PopupMenu
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -19,6 +20,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -27,6 +29,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
+import com.google.firebase.firestore.FirebaseFirestore
 
 class DashboardActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
@@ -45,15 +48,16 @@ class DashboardActivity : AppCompatActivity() {
     private val filteredGroceryItems = mutableListOf<GroceryItem>()
     private var currentFilter = "all"
     private var currentFilterIndex = 0
-
+    private val selectedFilters = mutableSetOf<String>()
 
     private lateinit var firestoreRepository: FirestoreRepository
+    private lateinit var firestore: FirebaseFirestore
     private lateinit var auth: FirebaseAuth
 
     private var hasAskedForNotificationPermission = false
 
-    private val filterOptions = arrayOf("All Items", "Fresh", "Expiring Soon", "Expired", "Used")
-    private val filterValues = arrayOf("all", "fresh", "expiring", "expired", "used")
+    private val filterOptions = arrayOf("Fresh", "Expiring Soon", "Expired", "Used")
+    private val filterValues = arrayOf("fresh", "expiring", "expired", "used")
 
     // Notification permission launcher
     private val notificationPermissionLauncher = registerForActivityResult(
@@ -99,6 +103,7 @@ class DashboardActivity : AppCompatActivity() {
             finish()
         } else {
             setupGreeting()
+            loadProfileImage()
         }
     }
 
@@ -111,6 +116,7 @@ class DashboardActivity : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance()
         firestoreRepository = FirestoreRepository()
+        firestore = FirebaseFirestore.getInstance()
 
         if (auth.currentUser == null) {
             clearUserLoggedInFlag()
@@ -144,28 +150,17 @@ class DashboardActivity : AppCompatActivity() {
 
         loadGroceryItems()
         setupGreeting()
+        loadProfileImage()
     }
 
     private fun setupWindowInsets() {
-        // Handle bottom navigation adaptive padding
-        ViewCompat.setOnApplyWindowInsetsListener(bottomNav) { view, windowInsets ->
-            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+        // Apply insets to header section
+        // This adds top, left, and right padding while preserving bottom padding
+        headerSection.applyHeaderInsets()
 
-            // Apply the bottom inset as padding
-            // Keep existing top padding (6dp), add system bottom inset
-            view.setPadding(
-                view.paddingLeft,
-                view.paddingTop,
-                view.paddingRight,
-                insets.bottom // This adapts to gesture vs button navigation
-            )
-
-            windowInsets
-        }
-    }
-
-    private fun dpToPx(dp: Int): Int {
-        return (dp * resources.displayMetrics.density).toInt()
+        // Apply insets to bottom navigation
+        // This adds bottom, left, and right padding while preserving top padding
+        bottomNav.applyBottomNavInsets()
     }
 
     private fun checkAndRequestNotificationPermission() {
@@ -222,6 +217,9 @@ class DashboardActivity : AppCompatActivity() {
         greetingText = findViewById(R.id.tv_greeting)
         profileButton = findViewById(R.id.iv_profile)
         loadingIndicator = findViewById(R.id.loading_indicator)
+        btnFilter = findViewById(R.id.btn_filter)
+        bottomNav = findViewById(R.id.bottom_nav)
+        headerSection = findViewById(R.id.header_section)
     }
 
     private fun setupRecyclerView() {
@@ -249,54 +247,75 @@ class DashboardActivity : AppCompatActivity() {
 
     private fun setupFilterButton() {
         btnFilter.setOnClickListener {
-            showFilterDialog()
+            showMultiSelectFilterDialog()
         }
     }
 
-    private fun showFilterDialog() {
+    private fun showMultiSelectFilterDialog() {
+        // Create a boolean array to track selected items
+        val checkedItems = BooleanArray(filterOptions.size) { index ->
+            selectedFilters.contains(filterValues[index])
+        }
+
         MaterialAlertDialogBuilder(this)
-            .setTitle("Filter Items")
-            .setSingleChoiceItems(filterOptions, currentFilterIndex) { dialog, which ->
-                currentFilterIndex = which
-                currentFilter = filterValues[which]
-
-                // Update button text
-                btnFilter.text = "Filter: ${filterOptions[which]}"
-
-                // Apply filter
+            .setTitle("Select Filters")
+            .setMultiChoiceItems(filterOptions, checkedItems) { _, which, isChecked ->
+                if (isChecked) {
+                    selectedFilters.add(filterValues[which])
+                } else {
+                    selectedFilters.remove(filterValues[which])
+                }
+            }
+            .setPositiveButton("Apply") { _, _ ->
                 applyFilter()
-
-                dialog.dismiss()
+                updateFilterButtonText()
             }
             .setNegativeButton("Cancel", null)
+            .setNeutralButton("Clear All") { _, _ ->
+                selectedFilters.clear()
+                applyFilter()
+                updateFilterButtonText()
+            }
             .show()
+    }
+
+    private fun updateFilterButtonText() {
+        val buttonText = when {
+            selectedFilters.isEmpty() -> "Filter: All"
+            selectedFilters.size == 1 -> {
+                val index = filterValues.indexOf(selectedFilters.first())
+                "Filter: ${filterOptions[index]}"
+            }
+            else -> "Filter: ${selectedFilters.size} selected"
+        }
+        btnFilter.text = buttonText
     }
 
     private fun applyFilter() {
         filteredGroceryItems.clear()
 
-        val filtered = when (currentFilter) {
-            "all" -> allGroceryItems
-            "fresh" -> allGroceryItems.filter {
-                val daysLeft = calculateDaysLeft(it.expiryDate)
-                val status = determineStatus(daysLeft, it.status)
-                status == "fresh"
+        // If no filters selected, show all items
+        if (selectedFilters.isEmpty()) {
+            filteredGroceryItems.addAll(allGroceryItems)
+        } else {
+            // Apply multi-select filter logic
+            val filtered = allGroceryItems.filter { item ->
+                val daysLeft = calculateDaysLeft(item.expiryDate)
+                val status = determineStatus(daysLeft, item.status)
+
+                selectedFilters.any { filter ->
+                    when (filter) {
+                        "fresh" -> status == "fresh"
+                        "expiring" -> status == "expiring"
+                        "expired" -> status == "expired"
+                        "used" -> item.status == "used"
+                        else -> false
+                    }
+                }
             }
-            "expiring" -> allGroceryItems.filter {
-                val daysLeft = calculateDaysLeft(it.expiryDate)
-                val status = determineStatus(daysLeft, it.status)
-                status == "expiring"
-            }
-            "expired" -> allGroceryItems.filter {
-                val daysLeft = calculateDaysLeft(it.expiryDate)
-                val status = determineStatus(daysLeft, it.status)
-                status == "expired"
-            }
-            "used" -> allGroceryItems.filter { it.status == "used" }
-            else -> allGroceryItems
+            filteredGroceryItems.addAll(filtered)
         }
 
-        filteredGroceryItems.addAll(filtered)
         adapter.notifyDataSetChanged()
         updateEmptyState()
     }
@@ -345,12 +364,90 @@ class DashboardActivity : AppCompatActivity() {
         val email = currentUser?.email
 
         val greeting = when {
-            !displayName.isNullOrEmpty() -> "Hello, $displayName ðŸ'‹"
-            !email.isNullOrEmpty() -> "Hello, ${email.substringBefore("@")} ðŸ'‹"
-            else -> "Hello, User ðŸ'‹"
+            !displayName.isNullOrEmpty() -> "Hello, $displayName 👋"
+            !email.isNullOrEmpty() -> "Hello, ${email.substringBefore("@")} 👋"
+            else -> "Hello, User 👋"
         }
 
         greetingText.text = greeting
+
+        // Load profile image
+        loadProfileImage()
+    }
+
+    private fun loadProfileImage() {
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            firestore.collection("users").document(currentUser.uid)
+                .get()
+                .addOnSuccessListener { document ->
+                    if (document.exists()) {
+                        val profileImageUrl = document.getString("profileImageUrl")
+                        if (!profileImageUrl.isNullOrEmpty()) {
+                            // Load profile image from Cloudinary
+                            Glide.with(this)
+                                .load(profileImageUrl)
+                                .circleCrop()
+                                .placeholder(R.drawable.ic_user)
+                                .error(R.drawable.ic_user)
+                                .into(profileButton)
+                        } else {
+                            // No profile image, show initial letter
+                            setProfileInitial()
+                        }
+                    } else {
+                        // Document doesn't exist, show initial letter
+                        setProfileInitial()
+                    }
+                }
+                .addOnFailureListener { e ->
+                    // On error, show initial letter
+                    setProfileInitial()
+                }
+        }
+    }
+
+    private fun setProfileInitial() {
+        val currentUser = auth.currentUser
+        val displayName = currentUser?.displayName
+        val email = currentUser?.email
+
+        val initial = when {
+            !displayName.isNullOrEmpty() -> displayName.firstOrNull()?.uppercase() ?: "U"
+            !email.isNullOrEmpty() -> email.firstOrNull()?.uppercase() ?: "U"
+            else -> "U"
+        }
+
+        // Create a bitmap with the initial letter
+        val size = 40 // Match the ImageView size in dp (converted to px)
+        val sizePx = (size * resources.displayMetrics.density).toInt()
+        val bitmap = android.graphics.Bitmap.createBitmap(sizePx, sizePx, android.graphics.Bitmap.Config.ARGB_8888)
+        val canvas = android.graphics.Canvas(bitmap)
+
+        // Draw circle background
+        val paint = android.graphics.Paint().apply {
+            isAntiAlias = true
+            color = ContextCompat.getColor(this@DashboardActivity, R.color.green_primary)
+        }
+        canvas.drawCircle(sizePx / 2f, sizePx / 2f, sizePx / 2f, paint)
+
+        // Draw initial text
+        val textPaint = android.graphics.Paint().apply {
+            isAntiAlias = true
+            color = android.graphics.Color.WHITE
+            textSize = sizePx * 0.5f
+            textAlign = android.graphics.Paint.Align.CENTER
+            typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
+        }
+
+        val textBounds = android.graphics.Rect()
+        textPaint.getTextBounds(initial, 0, initial.length, textBounds)
+        val textY = sizePx / 2f - textBounds.exactCenterY()
+
+        canvas.drawText(initial, sizePx / 2f, textY, textPaint)
+
+        // Set the bitmap to ImageView
+        profileButton.setImageBitmap(bitmap)
     }
 
     private fun loadGroceryItems() {
@@ -387,13 +484,18 @@ class DashboardActivity : AppCompatActivity() {
             emptyState.visibility = View.VISIBLE
 
             // Update empty message based on filter
-            val message = when (currentFilter) {
-                "all" -> "No items added yet"
-                "fresh" -> "No fresh items"
-                "expiring" -> "No items expiring soon"
-                "expired" -> "No expired items"
-                "used" -> "No used items"
-                else -> "No items found"
+            val message = when {
+                selectedFilters.isEmpty() -> "No items added yet"
+                selectedFilters.size == 1 -> {
+                    when (selectedFilters.first()) {
+                        "fresh" -> "No fresh items"
+                        "expiring" -> "No items expiring soon"
+                        "expired" -> "No expired items"
+                        "used" -> "No used items"
+                        else -> "No items found"
+                    }
+                }
+                else -> "No items match selected filters"
             }
             tvEmptyMessage.text = message
         } else {

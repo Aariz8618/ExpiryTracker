@@ -11,15 +11,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardCornerRadius="0dp"
-        app:cardElevation="2dp"
+        app:strokeColor="@color/white"
         app:cardBackgroundColor="@color/white">
 
         <LinearLayout
+            android:id="@+id/header_section"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingTop="24dp"
-            android:paddingBottom="16dp"
+            android:paddingBottom="8dp"
             android:paddingLeft="8dp"
             android:paddingRight="16dp">
 
@@ -43,7 +43,7 @@
                     app:icon="@drawable/left_arrow"
                     app:iconGravity="textStart"
                     app:iconPadding="0dp"
-                    app:iconSize="20dp"
+                    app:iconSize="24dp"
                     app:iconTint="@color/green_primary" />
 
                 <TextView
@@ -79,7 +79,8 @@
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:background="@color/white">
 
             <!-- Recipes RecyclerView -->
             <androidx.recyclerview.widget.RecyclerView

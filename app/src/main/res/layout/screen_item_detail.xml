@@ -11,17 +11,17 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardCornerRadius="0dp"
-        app:cardElevation="2dp"
+        app:strokeColor="@color/white"
         app:cardBackgroundColor="@color/white">
 
         <LinearLayout
+            android:id="@+id/header_section"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:paddingLeft="8dp"
             android:paddingRight="16dp"
-            android:paddingTop="24dp"
             android:paddingBottom="8dp">
 
             <com.google.android.material.button.MaterialButton
@@ -58,7 +58,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingBottom="16dp"
-            android:background="@drawable/gradient_background">
+            android:background="@color/white">
 
             <!-- Hero Section -->
             <RelativeLayout
@@ -76,7 +76,6 @@
                         android:layout_width="110dp"
                         android:layout_height="110dp"
                         app:cardCornerRadius="28dp"
-                        app:cardElevation="6dp"
                         app:cardBackgroundColor="@color/white">
 
                         <ImageView
@@ -138,7 +137,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     app:cardCornerRadius="20dp"
-                    app:cardElevation="2dp"
                     app:cardBackgroundColor="@color/green_50">
 
                     <TextView
@@ -300,7 +298,6 @@
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
                     app:cardCornerRadius="16dp"
-                    app:cardElevation="2dp"
                     app:cardBackgroundColor="@color/white">
 
                     <LinearLayout
@@ -338,7 +335,6 @@
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
                     app:cardCornerRadius="16dp"
-                    app:cardElevation="2dp"
                     app:cardBackgroundColor="@color/green_50">
 
                     <LinearLayout
@@ -513,11 +509,11 @@
 
             <!-- Action Buttons -->
             <LinearLayout
+                android:id="@+id/bottom_bar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingHorizontal="16dp"
-                android:paddingBottom="32dp">
+                android:paddingHorizontal="16dp">
 
                 <!-- Edit Button -->
                 <com.google.android.material.card.MaterialCardView

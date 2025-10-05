@@ -9,16 +9,15 @@
 
     <!-- Top App Bar -->
     <LinearLayout
+        android:id="@+id/header_section"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingLeft="16dp"
+        android:paddingLeft="8dp"
         android:paddingRight="16dp"
-        android:paddingTop="24dp"
         android:paddingBottom="8dp"
         android:gravity="center_vertical"
-        android:background="@android:color/white"
-        android:elevation="2dp">
+        android:background="@android:color/white">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_back"
@@ -54,7 +53,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="16dp"
+            android:background="@color/white">
 
             <!-- Profile Header Section -->
             <!-- Profile Header Section - Replace in activity_profile.xml -->
@@ -75,7 +75,7 @@
                     <View
                         android:layout_width="96dp"
                         android:layout_height="96dp"
-                        android:background="@drawable/circle_icon_bg" />
+                        android:background="@drawable/circle_icon_bg2" />
 
                     <TextView
                         android:id="@+id/tv_avatar_initial"

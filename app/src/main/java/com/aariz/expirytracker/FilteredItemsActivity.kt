@@ -8,13 +8,21 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.aariz.expirytracker.FirestoreRepository
+import com.aariz.expirytracker.GroceryAdapter
+import com.aariz.expirytracker.GroceryItem
+import com.aariz.expirytracker.ItemDetailActivity
+import com.aariz.expirytracker.R
+import com.aariz.expirytracker.applyHeaderInsets
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 class FilteredItemsActivity : AppCompatActivity() {
@@ -36,6 +44,9 @@ class FilteredItemsActivity : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance()
         firestoreRepository = FirestoreRepository()
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        findViewById<View>(R.id.header_section).applyHeaderInsets()
 
         // Get filter type from intent
         filterStatus = intent.getStringExtra("filter_status") ?: "all"
