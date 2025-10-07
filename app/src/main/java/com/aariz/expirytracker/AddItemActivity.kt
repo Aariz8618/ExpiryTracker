@@ -116,6 +116,7 @@ class AddItemActivity : AppCompatActivity() {
         barcodeText = findViewById(R.id.barcode_text)
         gs1InfoLayout = findViewById(R.id.gs1_info_layout)
         gs1InfoText = findViewById(R.id.gs1_info_text)
+        inputName.addTextChangedListener(TextCapitalizationWatcher())
     }
 
     private fun setupClickListeners() {
