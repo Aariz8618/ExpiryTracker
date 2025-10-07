@@ -56,10 +56,10 @@ class GroceryAdapter(
             // Set status badge text, colors, and indicator based on RECALCULATED status
             when (actualStatus) {
                 "used" -> {
-                    statusBadge.text = "Used ✓"
+                    statusBadge.text = "Used"
                     statusBadge.setTextColor(ContextCompat.getColor(itemView.context, android.R.color.white))
-                    statusBadge.setBackgroundResource(R.drawable.status_badge_fresh)
-                    statusIndicator.setBackgroundColor(ContextCompat.getColor(itemView.context, R.color.green_500))
+                    statusBadge.setBackgroundResource(R.drawable.status_badge_used)
+                    statusIndicator.setBackgroundColor(ContextCompat.getColor(itemView.context, R.color.orange_400))
                     // Set card background to light green for used items
                     cardView.setCardBackgroundColor(ContextCompat.getColor(itemView.context, R.color.green_50))
                 }
@@ -169,9 +169,9 @@ class GroceryAdapter(
 
             // Set icon tint based on status for visual hierarchy
             val tintColor = when (status) {
-                "used" -> R.color.green_400
+                "used" -> R.color.orange_400
                 "expired" -> R.color.red_400
-                "expiring" -> R.color.orange_400
+                "expiring" -> R.color.yellow_500
                 else -> R.color.green_400
             }
 
