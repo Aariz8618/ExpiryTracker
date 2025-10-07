@@ -348,8 +348,34 @@ class DashboardActivity : AppCompatActivity() {
             }
         }
 
+        // Sort items with priority: expiring → expired → fresh → used
+        sortGroceryItems()
+
         adapter.notifyDataSetChanged()
         updateEmptyState()
+    }
+
+    private fun sortGroceryItems() {
+        filteredGroceryItems.sortWith(compareBy<GroceryItem> { item ->
+            // Calculate real-time status
+            val daysLeft = calculateDaysLeft(item.expiryDate)
+            val status = determineStatus(daysLeft, item.status)
+
+            // Priority order: expiring(0) → expired(1) → fresh(2) → used(3)
+            when (status) {
+                "expiring" -> 0
+                "expired" -> 1
+                "fresh" -> 2
+                "used" -> 3
+                else -> 4
+            }
+        }.thenBy { item ->
+            // Within same status, sort by days left (ascending)
+            calculateDaysLeft(item.expiryDate)
+        }.thenBy { item ->
+            // Finally, sort by name for consistency
+            item.name.lowercase()
+        })
     }
 
     private fun setupNavigation() {
@@ -572,7 +598,7 @@ class DashboardActivity : AppCompatActivity() {
         return when {
             daysLeft < 0 -> "expired"
             daysLeft == 0 -> "expiring"
-            daysLeft <= 2 -> "expiring"
+            daysLeft <= 3 -> "expiring"
             else -> "fresh"
         }
     }

@@ -57,11 +57,11 @@ class GroceryAdapter(
             when (actualStatus) {
                 "used" -> {
                     statusBadge.text = "Used"
-                    statusBadge.setTextColor(ContextCompat.getColor(itemView.context, android.R.color.white))
+                    statusBadge.setTextColor(ContextCompat.getColor(itemView.context, android.R.color.black))
                     statusBadge.setBackgroundResource(R.drawable.status_badge_used)
                     statusIndicator.setBackgroundColor(ContextCompat.getColor(itemView.context, R.color.orange_400))
                     // Set card background to light green for used items
-                    cardView.setCardBackgroundColor(ContextCompat.getColor(itemView.context, R.color.green_50))
+                    cardView.setCardBackgroundColor(ContextCompat.getColor(itemView.context, R.color.orange_200))
                 }
                 "expired" -> {
                     val daysAgo = Math.abs(actualDaysLeft)
@@ -88,7 +88,7 @@ class GroceryAdapter(
                     statusBadge.text = daysText
                     statusBadge.setTextColor(ContextCompat.getColor(itemView.context, android.R.color.white))
                     statusBadge.setBackgroundResource(R.drawable.status_badge_expiring)
-                    statusIndicator.setBackgroundColor(ContextCompat.getColor(itemView.context, R.color.orange_500))
+                    statusIndicator.setBackgroundColor(ContextCompat.getColor(itemView.context, R.color.yellow_500))
                     // Reset card background
                     cardView.setCardBackgroundColor(ContextCompat.getColor(itemView.context, android.R.color.white))
                 }

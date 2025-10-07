@@ -174,9 +174,9 @@ class ItemDetailActivity : AppCompatActivity() {
                     else -> "$daysLeft days"
                 }
                 statusChip.text = "Expires in $daysLabel"
-                statusChip.setTextColor(Color.parseColor("#F57C00"))
+                statusChip.setTextColor(Color.parseColor("#FFC107"))
                 statusText.text = "Expiring"
-                statusText.setTextColor(Color.parseColor("#F57C00"))
+                statusText.setTextColor(Color.parseColor("#FFC107"))
             }
             "expired" -> {
                 val daysAgo = Math.abs(daysLeft)
@@ -191,10 +191,10 @@ class ItemDetailActivity : AppCompatActivity() {
                 statusText.setTextColor(Color.parseColor("#B71C1C"))
             }
             "used" -> {
-                statusChip.text = "Used ✓"
-                statusChip.setTextColor(Color.parseColor("#2E7D32"))
-                statusText.text = "Used ✓"
-                statusText.setTextColor(Color.parseColor("#2E7D32"))
+                statusChip.text = "Used"
+                statusChip.setTextColor(Color.parseColor("#FF9800"))
+                statusText.text = "Used"
+                statusText.setTextColor(Color.parseColor("#FF9800"))
             }
         }
     }
@@ -223,14 +223,14 @@ class ItemDetailActivity : AppCompatActivity() {
                         timelineProgress.setBackgroundColor(Color.parseColor("#4CAF50"))
                     }
                     "expiring" -> {
-                        timelineProgress.setBackgroundColor(Color.parseColor("#FF9800"))
+                        timelineProgress.setBackgroundColor(Color.parseColor("#FFC107"))
                     }
                     "expired" -> {
                         timelineProgress.setBackgroundColor(Color.parseColor("#F44336"))
                         timelineExpiryDot.setBackgroundResource(R.drawable.circle_icon_bg)
                     }
                     "used" -> {
-                        timelineProgress.setBackgroundColor(Color.parseColor("#4CAF50"))
+                        timelineProgress.setBackgroundColor(Color.parseColor("#FF9800"))
                     }
                 }
             }

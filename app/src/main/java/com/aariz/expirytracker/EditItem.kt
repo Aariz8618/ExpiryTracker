@@ -86,7 +86,7 @@ class EditItemActivity : AppCompatActivity() {
         productImageView = findViewById(R.id.product_image_view)
         barcodeInfoLayout = findViewById(R.id.barcode_info_layout)
         barcodeText = findViewById(R.id.barcode_text)
-        inputName.addTextChangedListener(TextCapitalizationWatcher())+00
+        inputName.addTextChangedListener(TextCapitalizationWatcher())
     }
 
     private fun loadItemData() {
