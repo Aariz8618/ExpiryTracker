@@ -40,24 +40,25 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var profileButton: ImageView
     private lateinit var loadingIndicator: LinearLayout
     private val groceryItems = mutableListOf<GroceryItem>()
-    private lateinit var btnFilter: MaterialButton
     private lateinit var bottomNav: LinearLayout
     private lateinit var headerSection: LinearLayout
+
+    // Filter buttons
+    private lateinit var btnAll: MaterialButton
+    private lateinit var btnFresh: MaterialButton
+    private lateinit var btnExpiring: MaterialButton
+    private lateinit var btnExpired: MaterialButton
+    private lateinit var btnUsed: MaterialButton
 
     private val allGroceryItems = mutableListOf<GroceryItem>()
     private val filteredGroceryItems = mutableListOf<GroceryItem>()
     private var currentFilter = "all"
-    private var currentFilterIndex = 0
-    private val selectedFilters = mutableSetOf<String>()
 
     private lateinit var firestoreRepository: FirestoreRepository
     private lateinit var firestore: FirebaseFirestore
     private lateinit var auth: FirebaseAuth
 
     private var hasAskedForNotificationPermission = false
-
-    private val filterOptions = arrayOf("Fresh", "Expiring Soon", "Expired", "Used")
-    private val filterValues = arrayOf("fresh", "expiring", "expired", "used")
 
     // Notification permission launcher
     private val notificationPermissionLauncher = registerForActivityResult(
@@ -129,7 +130,7 @@ class DashboardActivity : AppCompatActivity() {
         initViews()
         setupWindowInsets()
         setupRecyclerView()
-        setupFilterButton()
+        setupFilterButtons()
         setupNavigation()
         setupFab()
         setupProfileButton()
@@ -217,9 +218,15 @@ class DashboardActivity : AppCompatActivity() {
         greetingText = findViewById(R.id.tv_greeting)
         profileButton = findViewById(R.id.iv_profile)
         loadingIndicator = findViewById(R.id.loading_indicator)
-        btnFilter = findViewById(R.id.btn_filter)
         bottomNav = findViewById(R.id.bottom_nav)
         headerSection = findViewById(R.id.header_section)
+
+        // Initialize filter buttons
+        btnAll = findViewById(R.id.btn_all)
+        btnFresh = findViewById(R.id.btn_fresh)
+        btnExpiring = findViewById(R.id.btn_expiring)
+        btnExpired = findViewById(R.id.btn_expired)
+        btnUsed = findViewById(R.id.btn_used)
     }
 
     private fun setupRecyclerView() {
@@ -245,75 +252,100 @@ class DashboardActivity : AppCompatActivity() {
         recyclerView.adapter = adapter
     }
 
-    private fun setupFilterButton() {
-        btnFilter.setOnClickListener {
-            showMultiSelectFilterDialog()
+    private fun setupFilterButtons() {
+        btnAll.setOnClickListener {
+            setFilter("all")
+        }
+
+        btnFresh.setOnClickListener {
+            setFilter("fresh")
+        }
+
+        btnExpiring.setOnClickListener {
+            setFilter("expiring")
+        }
+
+        btnExpired.setOnClickListener {
+            setFilter("expired")
+        }
+
+        btnUsed.setOnClickListener {
+            setFilter("used")
+        }
+
+        // Set initial filter state
+        updateFilterButtonStates()
+    }
+
+    private fun setFilter(filter: String) {
+        currentFilter = filter
+        updateFilterButtonStates()
+        applyFilter()
+    }
+
+    private fun updateFilterButtonStates() {
+        // Reset all buttons to default state
+        resetButtonState(btnAll)
+        resetButtonState(btnFresh)
+        resetButtonState(btnExpiring)
+        resetButtonState(btnExpired)
+        resetButtonState(btnUsed)
+
+        // Highlight the selected button
+        when (currentFilter) {
+            "all" -> setActiveButtonState(btnAll)
+            "fresh" -> setActiveButtonState(btnFresh)
+            "expiring" -> setActiveButtonState(btnExpiring)
+            "expired" -> setActiveButtonState(btnExpired)
+            "used" -> setActiveButtonState(btnUsed)
         }
     }
 
-    private fun showMultiSelectFilterDialog() {
-        // Create a boolean array to track selected items
-        val checkedItems = BooleanArray(filterOptions.size) { index ->
-            selectedFilters.contains(filterValues[index])
-        }
-
-        MaterialAlertDialogBuilder(this)
-            .setTitle("Select Filters")
-            .setMultiChoiceItems(filterOptions, checkedItems) { _, which, isChecked ->
-                if (isChecked) {
-                    selectedFilters.add(filterValues[which])
-                } else {
-                    selectedFilters.remove(filterValues[which])
-                }
-            }
-            .setPositiveButton("Apply") { _, _ ->
-                applyFilter()
-                updateFilterButtonText()
-            }
-            .setNegativeButton("Cancel", null)
-            .setNeutralButton("Clear All") { _, _ ->
-                selectedFilters.clear()
-                applyFilter()
-                updateFilterButtonText()
-            }
-            .show()
+    private fun resetButtonState(button: MaterialButton) {
+        button.setTextColor(ContextCompat.getColor(this, R.color.gray_800))
+        button.backgroundTintList = ContextCompat.getColorStateList(this, android.R.color.white)
+        button.strokeColor = ContextCompat.getColorStateList(this, R.color.green_primary)
     }
 
-    private fun updateFilterButtonText() {
-        val buttonText = when {
-            selectedFilters.isEmpty() -> "Filter: All"
-            selectedFilters.size == 1 -> {
-                val index = filterValues.indexOf(selectedFilters.first())
-                "Filter: ${filterOptions[index]}"
-            }
-            else -> "Filter: ${selectedFilters.size} selected"
-        }
-        btnFilter.text = buttonText
+    private fun setActiveButtonState(button: MaterialButton) {
+        button.setTextColor(ContextCompat.getColor(this, android.R.color.white))
+        button.backgroundTintList = ContextCompat.getColorStateList(this, R.color.green_primary)
+        button.strokeColor = ContextCompat.getColorStateList(this, R.color.green_primary)
     }
 
     private fun applyFilter() {
         filteredGroceryItems.clear()
 
-        // If no filters selected, show all items
-        if (selectedFilters.isEmpty()) {
-            filteredGroceryItems.addAll(allGroceryItems)
-        } else {
-            // Apply multi-select filter logic
-            val filtered = allGroceryItems.filter { item ->
-                val daysLeft = calculateDaysLeft(item.expiryDate)
-                val status = determineStatus(daysLeft, item.status)
-
-                selectedFilters.any { filter ->
-                    when (filter) {
-                        "fresh" -> status == "fresh"
-                        "expiring" -> status == "expiring"
-                        "expired" -> status == "expired"
-                        "used" -> item.status == "used"
-                        else -> false
-                    }
-                }
+        when (currentFilter) {
+            "all" -> {
+                filteredGroceryItems.addAll(allGroceryItems)
             }
-            filteredGroceryItems.addAll(filtered)
+            "fresh" -> {
+                filteredGroceryItems.addAll(allGroceryItems.filter { item ->
+                    val daysLeft = calculateDaysLeft(item.expiryDate)
+                    val status = determineStatus(daysLeft, item.status)
+                    status == "fresh"
+                })
+            }
+            "expiring" -> {
+                filteredGroceryItems.addAll(allGroceryItems.filter { item ->
+                    val daysLeft = calculateDaysLeft(item.expiryDate)
+                    val status = determineStatus(daysLeft, item.status)
+                    status == "expiring"
+                })
+            }
+            "expired" -> {
+                filteredGroceryItems.addAll(allGroceryItems.filter { item ->
+                    val daysLeft = calculateDaysLeft(item.expiryDate)
+                    val status = determineStatus(daysLeft, item.status)
+                    status == "expired"
+                })
+            }
+            "used" -> {
+                filteredGroceryItems.addAll(allGroceryItems.filter { item ->
+                    item.status == "used"
+                })
+            }
         }
 
         adapter.notifyDataSetChanged()
@@ -484,18 +516,13 @@ class DashboardActivity : AppCompatActivity() {
             emptyState.visibility = View.VISIBLE
 
             // Update empty message based on filter
-            val message = when {
-                selectedFilters.isEmpty() -> "No items added yet"
-                selectedFilters.size == 1 -> {
-                    when (selectedFilters.first()) {
-                        "fresh" -> "No fresh items"
-                        "expiring" -> "No items expiring soon"
-                        "expired" -> "No expired items"
-                        "used" -> "No used items"
-                        else -> "No items found"
-                    }
-                }
-                else -> "No items match selected filters"
+            val message = when (currentFilter) {
+                "all" -> "No items added yet"
+                "fresh" -> "No fresh items"
+                "expiring" -> "No items expiring soon"
+                "expired" -> "No expired items"
+                "used" -> "No used items"
+                else -> "No items found"
             }
             tvEmptyMessage.text = message
         } else {
